@@ -16,14 +16,14 @@ let package = Package(
             targets: ["DVTUIKit"]
         ),
     ],
-//    dependencies: [
-//        .package(url: "https://github.com/darvintang/DVTFoundation.git", .upToNextMajor(from: "1.0.0")),
-//    ],
+    dependencies: [
+        .package(url: "https://github.com/darvintang/DVTFoundation.git", .upToNextMajor(from: "1.0.0")),
+    ],
     targets: [
 
         .target(
             name: "DVTUIKit",
-//            dependencies: ["DVTFoundation"],
+            dependencies: ["DVTFoundation"],
             path: "Sources"
         ),
         .testTarget(

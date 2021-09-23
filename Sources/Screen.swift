@@ -31,7 +31,7 @@
 
  */
 
-
+import DVTFoundation
 import UIKit
 
 /// 判断设备类型
@@ -39,90 +39,94 @@ import UIKit
 fileprivate var Bool_isAlienScreen: Bool?
 fileprivate var SCREENInfo_SafeAreaInsets: UIEdgeInsets?
 
-public extension Bool {
-    static var xti_isMainThread: Bool {
+extension Bool: NameSpace {}
+public extension WrapperSpace where BaseType == Bool {
+    /// 判断当前线程是否是主线程
+    static var isMainThread: Bool {
         return OperationQueue.current?.underlyingQueue?.label == DispatchQueue.main.label
     }
 
-    static var xti_isIphone5: Bool {
-        let size = CGSize.xti_screenSize
+    /// 判断是否是4寸屏iPhone，逻辑像素(320*568)
+    static var isIphone5: Bool {
+        let size = CGSize.dvt.screenSize
         return size.equalTo(CGSize(width: 320, height: 568)) || size.equalTo(CGSize(width: 568, height: 320))
     }
 
-    static var xti_isIphone: Bool {
-        let size = CGSize.xti_screenSize
+    /// 判断是否是4寸屏iPhone，逻辑像素(320*568)
+    static var isIphone: Bool {
+        let size = CGSize.dvt.screenSize
         return size.equalTo(CGSize(width: 375, height: 667)) || size.equalTo(CGSize(width: 667, height: 375))
     }
 
-    static var xti_isIphonePuls: Bool {
-        let size = CGSize.xti_screenSize
+    /// 5.5寸Puls大屏
+    static var isIphonePuls: Bool {
+        let size = CGSize.dvt.screenSize
         return size.equalTo(CGSize(width: 414, height: 736)) || size.equalTo(CGSize(width: 736, height: 414))
     }
 
-    static var xti_isAlienScreen: Bool {
-        if #available(iOS 11.0, *) {
-            if Bool_isAlienScreen == nil {
-                if SCREENInfo_SafeAreaInsets == nil {
-                    if Bool.xti_isMainThread {
-                        SCREENInfo_SafeAreaInsets = UIWindow(frame: CGRect.xti_screenBounds).safeAreaInsets
-                    } else {
-                        DispatchQueue.main.sync {
-                            SCREENInfo_SafeAreaInsets = UIWindow(frame: CGRect.xti_screenBounds).safeAreaInsets
-                        }
+    /// 刘海屏
+    @available(iOS 11.0, *)
+    static var isAlienScreen: Bool {
+        if Bool_isAlienScreen == nil {
+            if SCREENInfo_SafeAreaInsets == nil {
+                if Bool.dvt.isMainThread {
+                    SCREENInfo_SafeAreaInsets = UIWindow(frame: CGRect.dvt.screenBounds).safeAreaInsets
+                } else {
+                    DispatchQueue.main.sync {
+                        SCREENInfo_SafeAreaInsets = UIWindow(frame: CGRect.dvt.screenBounds).safeAreaInsets
                     }
                 }
-                let safeAreaInsets = SCREENInfo_SafeAreaInsets ?? UIEdgeInsets.zero
-                Bool_isAlienScreen = safeAreaInsets.bottom > 0
             }
-            return Bool_isAlienScreen ?? false
-        } else {
-            return false
+            let safeAreaInsets = SCREENInfo_SafeAreaInsets ?? UIEdgeInsets.zero
+            Bool_isAlienScreen = safeAreaInsets.bottom > 0
         }
+        return Bool_isAlienScreen ?? false
     }
 
-    static var xti_isLandscape: Bool {
+    static var isLandscape: Bool {
         let orientation = UIApplication.shared.statusBarOrientation
         return orientation == .landscapeLeft || orientation == .landscapeRight
     }
 }
 
-/// 获取设备一些尺寸
-public extension CGRect {
-    static var xti_screenBounds: CGRect {
+extension CGRect: NameSpace {}
+public extension WrapperSpace where BaseType == CGRect {
+    static var screenBounds: CGRect {
         return UIScreen.main.bounds
     }
 }
 
-public extension CGSize {
+extension CGSize: NameSpace {}
+public extension WrapperSpace where BaseType == CGSize {
     /// 屏幕大小
-    static var xti_screenSize: CGSize {
-        return CGRect.xti_screenBounds.size
+    static var screenSize: CGSize {
+        return CGRect.dvt.screenBounds.size
     }
 }
 
 fileprivate var CGFloat_STATUS_HEIGHT: CGFloat?
-
-public extension CGFloat {
+extension CGFloat: NameSpace {}
+public extension WrapperSpace where BaseType == CGFloat {
     /// 屏幕宽度
-    static var xti_screenWidth: CGFloat {
-        return CGSize.xti_screenSize.width
+    static var screenWidth: CGFloat {
+        return CGSize.dvt.screenSize.width
     }
 
     /// 屏幕高度
-    static var xti_screenHeight: CGFloat {
-        return CGSize.xti_screenSize.height
+    static var screenHeight: CGFloat {
+        return CGSize.dvt.screenSize.height
     }
 
     /// 状态栏安全高度
-    static var xti_statusHeight: CGFloat {
+    static var statusHeight: CGFloat {
         if #available(iOS 11.0, *) {
-            if Bool.xti_isAlienScreen {
+            if Bool.dvt.isAlienScreen {
                 if SCREENInfo_SafeAreaInsets == nil {
-                    if Bool.xti_isMainThread {
-                        SCREENInfo_SafeAreaInsets = UIWindow(frame: CGRect.xti_screenBounds).safeAreaInsets
+                    if Bool.dvt.isMainThread {
+                        SCREENInfo_SafeAreaInsets = UIWindow(frame: CGRect.dvt.screenBounds).safeAreaInsets
                     } else {
                         DispatchQueue.main.sync {
-                            SCREENInfo_SafeAreaInsets = UIWindow(frame: CGRect.xti_screenBounds).safeAreaInsets
+                            SCREENInfo_SafeAreaInsets = UIWindow(frame: CGRect.dvt.screenBounds).safeAreaInsets
                         }
                     }
                 }
@@ -130,19 +134,19 @@ public extension CGFloat {
                 return safeAreaInsets.top
             }
         }
-        return Bool.xti_isLandscape ? 0 : 20.0
+        return Bool.dvt.isLandscape ? 0 : 20.0
     }
 
     /// 异形屏 机型 底部控制栏高度
-    static var xti_buttonHeight: CGFloat {
+    static var buttonHeight: CGFloat {
         if #available(iOS 11.0, *) {
-            if Bool.xti_isAlienScreen {
+            if .dvt.isAlienScreen {
                 if SCREENInfo_SafeAreaInsets == nil {
-                    if Bool.xti_isMainThread {
-                        SCREENInfo_SafeAreaInsets = UIWindow(frame: CGRect.xti_screenBounds).safeAreaInsets
+                    if .dvt.isMainThread {
+                        SCREENInfo_SafeAreaInsets = UIWindow(frame: .dvt.screenBounds).safeAreaInsets
                     } else {
                         DispatchQueue.main.sync {
-                            SCREENInfo_SafeAreaInsets = UIWindow(frame: CGRect.xti_screenBounds).safeAreaInsets
+                            SCREENInfo_SafeAreaInsets = UIWindow(frame: .dvt.screenBounds).safeAreaInsets
                         }
                     }
                 }
@@ -154,17 +158,17 @@ public extension CGFloat {
     }
 
     /// tabbar的安全高度
-    static var xti_tabbarHeight: CGFloat {
-        return xti_buttonHeight + 49.0
+    static var tabbarHeight: CGFloat {
+        return self.buttonHeight + 49.0
     }
 
     /// 导航控制器安全高度
-    static var xti_navbarHeight: CGFloat {
-        return xti_statusHeight + 44.0
+    static var navbarHeight: CGFloat {
+        return self.statusHeight + 44.0
     }
 
     /// 以375为标准计算尺寸
-    static func xti_375(_ value: CGFloat) -> CGFloat {
-        return value * 375.0 / Swift.min(self.xti_screenWidth, self.xti_screenHeight)
+    static func with375(_ value: CGFloat) -> CGFloat {
+        return value * 375.0 / Swift.min(self.screenWidth, self.screenHeight)
     }
 }

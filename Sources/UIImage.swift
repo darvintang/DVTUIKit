@@ -90,4 +90,61 @@ public extension UIImage {
             UIGraphicsEndImageContext()
         }
     }
+
+    enum GraphicDirection {
+        case left2right, top2bottom, leftTop2rightBottom, leftBottom2rightTop
+    }
+
+    /// 创建一张渐变的图片
+    convenience init?(dvt colors: [UIColor], size: CGSize = CGSize(width: 10, height: 10), direction: GraphicDirection = .left2right) {
+        guard !colors.isEmpty else {
+            return nil
+        }
+        UIGraphicsBeginImageContextWithOptions(size, true, UIScreen.main.scale)
+        defer {
+            UIGraphicsEndImageContext()
+        }
+        guard let context = UIGraphicsGetCurrentContext() else {
+            return nil
+        }
+        context.saveGState()
+
+        var startPoint: CGPoint = .zero
+        var endPoint: CGPoint = .zero
+
+        switch direction {
+        case .left2right:
+            startPoint = CGPoint(x: 0, y: 0.5 * size.height)
+            endPoint = CGPoint(x: size.width, y: 0.5 * size.height)
+        case .top2bottom:
+            startPoint = CGPoint(x: 0.5 * size.width, y: 0)
+            endPoint = CGPoint(x: 0.5 * size.width, y: size.height)
+        case .leftTop2rightBottom:
+            startPoint = CGPoint(x: 0, y: 0)
+            endPoint = CGPoint(x: size.width, y: size.height)
+        case .leftBottom2rightTop:
+            startPoint = CGPoint(x: 0, y: size.height)
+            endPoint = CGPoint(x: size.width, y: 0)
+        }
+
+        let interval = 1.0 / CGFloat(colors.count)
+        let startLocation = interval / 2
+        var locations: [CGFloat] = []
+        for i in 0 ..< colors.count {
+            let num = interval * CGFloat(i) + startLocation
+            locations.append(num)
+        }
+        let colorSpace = colors.first!.cgColor.colorSpace
+        guard let gradient = CGGradient(colorsSpace: colorSpace, colors: colors.compactMap({ $0.cgColor }) as CFArray, locations: &locations) else {
+            return nil
+        }
+        context.drawLinearGradient(gradient, start: startPoint, end: endPoint, options: [.drawsBeforeStartLocation, .drawsAfterEndLocation])
+        let outImage = UIGraphicsGetImageFromCurrentImageContext()
+        context.restoreGState()
+        if let cgImage = outImage?.cgImage {
+            self.init(cgImage: cgImage)
+        } else {
+            return nil
+        }
+    }
 }

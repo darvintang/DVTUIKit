@@ -70,10 +70,10 @@ public extension WrapperSpace where BaseType == Bool {
         if Bool_isAlienScreen == nil {
             if SCREENInfo_SafeAreaInsets == nil {
                 if Bool.dvt.isMainThread {
-                    SCREENInfo_SafeAreaInsets = UIWindow(frame: CGRect.dvt.screenBounds).safeAreaInsets
+                    SCREENInfo_SafeAreaInsets = UIWindow(frame: .dvt.screenBounds).safeAreaInsets
                 } else {
                     DispatchQueue.main.sync {
-                        SCREENInfo_SafeAreaInsets = UIWindow(frame: CGRect.dvt.screenBounds).safeAreaInsets
+                        SCREENInfo_SafeAreaInsets = UIWindow(frame: .dvt.screenBounds).safeAreaInsets
                     }
                 }
             }
@@ -138,7 +138,7 @@ public extension WrapperSpace where BaseType == CGFloat {
     }
 
     /// 异形屏 机型 底部控制栏高度
-    static var buttonHeight: CGFloat {
+    static var bottomHeight: CGFloat {
         if #available(iOS 11.0, *) {
             if .dvt.isAlienScreen {
                 if SCREENInfo_SafeAreaInsets == nil {
@@ -159,7 +159,7 @@ public extension WrapperSpace where BaseType == CGFloat {
 
     /// tabbar的安全高度
     static var tabbarHeight: CGFloat {
-        return self.buttonHeight + 49.0
+        return self.bottomHeight + 49.0
     }
 
     /// 导航控制器安全高度

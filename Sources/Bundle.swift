@@ -41,4 +41,8 @@ public extension WrapperSpace where BaseType == Bundle {
     var version: String {
         (self.base.infoDictionary?["CFBundleShortVersionString"] as? String) ?? ""
     }
+
+    var build: String {
+        (self.base.infoDictionary?["CFBundleVersion"] as? String) ?? ""
+    }
 }

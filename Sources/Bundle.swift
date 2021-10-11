@@ -37,7 +37,7 @@ import Foundation
 extension Bundle: NameSpace {
 }
 
-public extension WrapperSpace where BaseType == Bundle {
+public extension BaseWrapper where BaseType == Bundle {
     var version: String {
         (self.base.infoDictionary?["CFBundleShortVersionString"] as? String) ?? ""
     }

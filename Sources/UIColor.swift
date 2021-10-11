@@ -36,7 +36,7 @@ import UIKit
 
 extension UIColor: NameSpace {}
 
-public extension WrapperSpace where BaseType == UIColor {
+public extension BaseWrapper where BaseType == UIColor {
     @available(iOS 13.0, *)
     var isDynamic: Bool {
         guard let cls = NSClassFromString("UI" + "Dynamic" + "Color") else {

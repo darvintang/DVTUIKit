@@ -40,7 +40,7 @@ fileprivate var Bool_isAlienScreen: Bool?
 fileprivate var SCREENInfo_SafeAreaInsets: UIEdgeInsets?
 
 extension Bool: NameSpace {}
-public extension WrapperSpace where BaseType == Bool {
+public extension BaseWrapper where BaseType == Bool {
     /// 判断当前线程是否是主线程
     static var isMainThread: Bool {
         return OperationQueue.current?.underlyingQueue?.label == DispatchQueue.main.label
@@ -90,14 +90,14 @@ public extension WrapperSpace where BaseType == Bool {
 }
 
 extension CGRect: NameSpace {}
-public extension WrapperSpace where BaseType == CGRect {
+public extension BaseWrapper where BaseType == CGRect {
     static var screenBounds: CGRect {
         return UIScreen.main.bounds
     }
 }
 
 extension CGSize: NameSpace {}
-public extension WrapperSpace where BaseType == CGSize {
+public extension BaseWrapper where BaseType == CGSize {
     /// 屏幕大小
     static var screenSize: CGSize {
         return CGRect.dvt.screenBounds.size
@@ -106,7 +106,7 @@ public extension WrapperSpace where BaseType == CGSize {
 
 fileprivate var CGFloat_STATUS_HEIGHT: CGFloat?
 extension CGFloat: NameSpace {}
-public extension WrapperSpace where BaseType == CGFloat {
+public extension BaseWrapper where BaseType == CGFloat {
     /// 屏幕宽度
     static var screenWidth: CGFloat {
         return CGSize.dvt.screenSize.width

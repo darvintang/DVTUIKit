@@ -113,18 +113,18 @@ public extension UIImage {
         var endPoint: CGPoint = .zero
 
         switch direction {
-        case .left2right:
-            startPoint = CGPoint(x: 0, y: 0.5 * size.height)
-            endPoint = CGPoint(x: size.width, y: 0.5 * size.height)
-        case .top2bottom:
-            startPoint = CGPoint(x: 0.5 * size.width, y: 0)
-            endPoint = CGPoint(x: 0.5 * size.width, y: size.height)
-        case .leftTop2rightBottom:
-            startPoint = CGPoint(x: 0, y: 0)
-            endPoint = CGPoint(x: size.width, y: size.height)
-        case .leftBottom2rightTop:
-            startPoint = CGPoint(x: 0, y: size.height)
-            endPoint = CGPoint(x: size.width, y: 0)
+            case .left2right:
+                startPoint = CGPoint(x: 0, y: 0.5 * size.height)
+                endPoint = CGPoint(x: size.width, y: 0.5 * size.height)
+            case .top2bottom:
+                startPoint = CGPoint(x: 0.5 * size.width, y: 0)
+                endPoint = CGPoint(x: 0.5 * size.width, y: size.height)
+            case .leftTop2rightBottom:
+                startPoint = CGPoint(x: 0, y: 0)
+                endPoint = CGPoint(x: size.width, y: size.height)
+            case .leftBottom2rightTop:
+                startPoint = CGPoint(x: 0, y: size.height)
+                endPoint = CGPoint(x: size.width, y: 0)
         }
 
         let interval = 1.0 / CGFloat(colors.count)

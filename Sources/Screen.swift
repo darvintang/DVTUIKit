@@ -36,9 +36,6 @@ import UIKit
 
 /// 判断设备类型
 
-fileprivate var Bool_isAlienScreen: Bool?
-fileprivate var SCREENInfo_SafeAreaInsets: UIEdgeInsets?
-
 extension Bool: NameSpace {}
 public extension BaseWrapper where BaseType == Bool {
     /// 判断当前线程是否是主线程
@@ -67,20 +64,7 @@ public extension BaseWrapper where BaseType == Bool {
     /// 刘海屏
     @available(iOS 11.0, *)
     static var isAlienScreen: Bool {
-        if Bool_isAlienScreen == nil {
-            if SCREENInfo_SafeAreaInsets == nil {
-                if Bool.dvt.isMainThread {
-                    SCREENInfo_SafeAreaInsets = UIWindow(frame: .dvt.screenBounds).safeAreaInsets
-                } else {
-                    DispatchQueue.main.sync {
-                        SCREENInfo_SafeAreaInsets = UIWindow(frame: .dvt.screenBounds).safeAreaInsets
-                    }
-                }
-            }
-            let safeAreaInsets = SCREENInfo_SafeAreaInsets ?? UIEdgeInsets.zero
-            Bool_isAlienScreen = safeAreaInsets.bottom > 0
-        }
-        return Bool_isAlienScreen ?? false
+        (UIApplication.dvt.mainWindow?.safeAreaInsets.bottom ?? 0) > 0
     }
 
     static var isLandscape: Bool {
@@ -121,17 +105,7 @@ public extension BaseWrapper where BaseType == CGFloat {
     static var statusHeight: CGFloat {
         if #available(iOS 11.0, *) {
             if Bool.dvt.isAlienScreen {
-                if SCREENInfo_SafeAreaInsets == nil {
-                    if Bool.dvt.isMainThread {
-                        SCREENInfo_SafeAreaInsets = UIWindow(frame: CGRect.dvt.screenBounds).safeAreaInsets
-                    } else {
-                        DispatchQueue.main.sync {
-                            SCREENInfo_SafeAreaInsets = UIWindow(frame: CGRect.dvt.screenBounds).safeAreaInsets
-                        }
-                    }
-                }
-                let safeAreaInsets = SCREENInfo_SafeAreaInsets ?? UIEdgeInsets.zero
-                return safeAreaInsets.top
+                return UIApplication.dvt.mainWindow?.safeAreaInsets.top ?? 0
             }
         }
         return Bool.dvt.isLandscape ? 0 : 20.0
@@ -141,17 +115,7 @@ public extension BaseWrapper where BaseType == CGFloat {
     static var bottomHeight: CGFloat {
         if #available(iOS 11.0, *) {
             if .dvt.isAlienScreen {
-                if SCREENInfo_SafeAreaInsets == nil {
-                    if .dvt.isMainThread {
-                        SCREENInfo_SafeAreaInsets = UIWindow(frame: .dvt.screenBounds).safeAreaInsets
-                    } else {
-                        DispatchQueue.main.sync {
-                            SCREENInfo_SafeAreaInsets = UIWindow(frame: .dvt.screenBounds).safeAreaInsets
-                        }
-                    }
-                }
-                let safeAreaInsets = SCREENInfo_SafeAreaInsets ?? UIEdgeInsets.zero
-                return safeAreaInsets.bottom
+                return UIApplication.dvt.mainWindow?.safeAreaInsets.bottom ?? 0
             }
         }
         return 0
@@ -169,6 +133,6 @@ public extension BaseWrapper where BaseType == CGFloat {
 
     /// 以375为标准计算尺寸
     static func with375(_ value: CGFloat) -> CGFloat {
-        return value * 375.0 / Swift.min(self.screenWidth, self.screenHeight)
+        return value / 375.0 * Swift.min(self.screenWidth, self.screenHeight)
     }
 }

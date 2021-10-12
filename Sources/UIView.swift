@@ -9,7 +9,8 @@ import DVTFoundation
 import UIKit
 
 extension UIView: NameSpace {}
-public extension BaseWrapper where BaseType == UIView {
+
+public extension BaseWrapper where BaseType: UIView {
     var origin: CGPoint {
         get { self.base.frame.origin }
         set { self.base.frame = CGRect(origin: newValue, size: self.size) }

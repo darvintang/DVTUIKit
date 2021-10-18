@@ -32,13 +32,13 @@ public extension BaseWrapper where BaseType: UIView {
     }
 
     var maxX: CGFloat {
-        get { self.y + self.height }
-        set { if newValue > self.y { self.height = newValue - self.y }}
+        get { self.x + self.width }
+        set { if newValue > self.x { self.width = newValue - self.x }}
     }
 
     var maxY: CGFloat {
-        get { self.x + self.width }
-        set { if newValue > self.x { self.width = newValue - self.x }}
+        get { self.y + self.height }
+        set { if newValue > self.y { self.height = newValue - self.y }}
     }
 
     var width: CGFloat {
@@ -54,5 +54,13 @@ public extension BaseWrapper where BaseType: UIView {
     var cornerRadius: CGFloat {
         get { self.base.layer.cornerRadius }
         set { self.base.layer.cornerRadius = newValue; self.base.clipsToBounds = true }
+    }
+
+    func addCorner(corners: UIRectCorner, radius: CGFloat) {
+        let maskPath = UIBezierPath(roundedRect: self.base.bounds, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+        let maskLayer = CAShapeLayer()
+        maskLayer.frame = self.base.bounds
+        maskLayer.path = maskPath.cgPath
+        self.base.layer.mask = maskLayer
     }
 }

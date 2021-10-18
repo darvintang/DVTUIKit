@@ -112,7 +112,7 @@ public extension BaseWrapper where BaseType == CGFloat {
     }
 
     /// 异形屏 机型 底部控制栏高度
-    static var bottomHeight: CGFloat {
+    static var safeBottomHeight: CGFloat {
         if #available(iOS 11.0, *) {
             if .dvt.isAlienScreen {
                 return UIApplication.dvt.mainWindow?.safeAreaInsets.bottom ?? 0
@@ -122,12 +122,12 @@ public extension BaseWrapper where BaseType == CGFloat {
     }
 
     /// tabbar的安全高度
-    static var tabbarHeight: CGFloat {
-        return self.bottomHeight + 49.0
+    static var tabBarHeight: CGFloat {
+        return self.safeBottomHeight + 49.0
     }
 
     /// 导航控制器安全高度
-    static var navbarHeight: CGFloat {
+    static var navigationBarHeight: CGFloat {
         return self.statusHeight + 44.0
     }
 

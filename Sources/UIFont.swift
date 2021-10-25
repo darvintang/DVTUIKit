@@ -36,7 +36,7 @@ import UIKit
 
 extension UIFont: NameSpace {}
 
-public extension BaseWrapper where BaseType == UIFont {
+public extension BaseWrapper where DT == UIFont {
     static func ultraLight(of fontSize: CGFloat) -> UIFont { .systemFont(ofSize: fontSize, weight: .ultraLight) }
     static func thin(of fontSize: CGFloat) -> UIFont { .systemFont(ofSize: fontSize, weight: .thin) }
     static func light(of fontSize: CGFloat) -> UIFont { .systemFont(ofSize: fontSize, weight: .light) }

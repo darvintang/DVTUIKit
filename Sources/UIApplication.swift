@@ -36,7 +36,7 @@ import UIKit
 
 extension UIApplication: NameSpace { }
 
-public extension BaseWrapper where BaseType == UIApplication {
+public extension BaseWrapper where DT == UIApplication {
     static var mainWindow: UIWindow? {
         var window: UIWindow?
         if let tempWindow = UIApplication.shared.delegate?.window {

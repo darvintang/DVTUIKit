@@ -37,7 +37,7 @@ import UIKit
 /// 判断设备类型
 
 extension Bool: NameSpace {}
-public extension BaseWrapper where BaseType == Bool {
+public extension BaseWrapper where DT == Bool {
     /// 判断当前线程是否是主线程
     static var isMainThread: Bool {
         return OperationQueue.current?.underlyingQueue?.label == DispatchQueue.main.label
@@ -74,14 +74,14 @@ public extension BaseWrapper where BaseType == Bool {
 }
 
 extension CGRect: NameSpace {}
-public extension BaseWrapper where BaseType == CGRect {
+public extension BaseWrapper where DT == CGRect {
     static var screenBounds: CGRect {
         return UIScreen.main.bounds
     }
 }
 
 extension CGSize: NameSpace {}
-public extension BaseWrapper where BaseType == CGSize {
+public extension BaseWrapper where DT == CGSize {
     /// 屏幕大小
     static var screenSize: CGSize {
         return CGRect.dvt.screenBounds.size
@@ -90,7 +90,7 @@ public extension BaseWrapper where BaseType == CGSize {
 
 fileprivate var CGFloat_STATUS_HEIGHT: CGFloat?
 extension CGFloat: NameSpace {}
-public extension BaseWrapper where BaseType == CGFloat {
+public extension BaseWrapper where DT == CGFloat {
     /// 屏幕宽度
     static var screenWidth: CGFloat {
         return CGSize.dvt.screenSize.width

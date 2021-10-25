@@ -36,7 +36,7 @@ import UIKit
 
 extension UIDevice: NameSpace {}
 
-public extension BaseWrapper where BaseType == UIDevice {
+public extension BaseWrapper where DT == UIDevice {
     var model: String {
         var systemInfo = utsname()
         uname(&systemInfo)

@@ -9,51 +9,48 @@ import DVTFoundation
 import UIKit
 
 extension UIView: NameSpace {}
-
-public extension BaseWrapper where BaseType: UIView {
+public extension BaseWrapper where DT: UIView {
     var origin: CGPoint {
-        get { self.base.frame.origin }
         set { self.base.frame = CGRect(origin: newValue, size: self.size) }
+        get { self.base.frame.origin }
     }
 
     var size: CGSize {
-        get { self.base.frame.size }
         set { self.base.frame = CGRect(origin: self.origin, size: newValue) }
+        get { self.base.frame.size }
     }
 
     var x: CGFloat {
-        get { self.origin.x }
         set { self.origin = CGPoint(x: newValue, y: self.y) }
+        get { self.origin.x }
     }
 
     var y: CGFloat {
-        get { self.origin.y }
         set { self.origin = CGPoint(x: self.x, y: newValue) }
+        get { self.origin.y }
     }
 
     var maxX: CGFloat {
-        get { self.x + self.width }
-        set { if newValue > self.x { self.width = newValue - self.x }}
+        self.x + self.width
     }
 
     var maxY: CGFloat {
-        get { self.y + self.height }
-        set { if newValue > self.y { self.height = newValue - self.y }}
+        self.y + self.height
     }
 
     var width: CGFloat {
-        get { self.size.width }
         set { self.size = CGSize(width: newValue, height: self.height) }
+        get { self.size.width }
     }
 
     var height: CGFloat {
-        get { self.size.height }
         set { self.size = CGSize(width: self.width, height: newValue) }
+        get { self.size.height }
     }
 
     var cornerRadius: CGFloat {
+        set { self.base.layer.cornerRadius = newValue; self.base.clipsToBounds = newValue > 0 }
         get { self.base.layer.cornerRadius }
-        set { self.base.layer.cornerRadius = newValue; self.base.clipsToBounds = true }
     }
 
     func addCorner(corners: UIRectCorner, radius: CGFloat) {

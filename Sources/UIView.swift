@@ -6,6 +6,7 @@
 //
 
 import DVTFoundation
+import ObjectiveC
 import UIKit
 
 extension UIView: NameSpace {}
@@ -59,5 +60,39 @@ public extension BaseWrapper where DT: UIView {
         maskLayer.frame = self.base.bounds
         maskLayer.path = maskPath.cgPath
         self.base.layer.mask = maskLayer
+    }
+}
+
+private var DVT_UIViewClickBlockKey: Int8 = 0
+extension UIView {
+    var dvt_clickBlock: (() -> Void)? {
+        set {
+            objc_setAssociatedObject(self, &DVT_UIViewClickBlockKey, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+        }
+        get {
+            if let block = objc_getAssociatedObject(self, &DVT_UIViewClickBlockKey) {
+                return block as? () -> Void
+            }
+            return nil
+        }
+    }
+
+    @objc func dvt_didClickSelf() {
+        self.dvt_clickBlock?()
+    }
+}
+
+public extension BaseWrapper where DT: UIView {
+    mutating func addTap(_ taps: Int = 1, touchs: Int = 1, block clickBlock: @escaping (DT?) -> Void) {
+        self.base.isUserInteractionEnabled = true
+        let view = self.base
+        self.base.dvt_clickBlock = { () -> Void in
+            clickBlock(view)
+        }
+        let tap = UITapGestureRecognizer()
+        tap.numberOfTapsRequired = taps
+        tap.numberOfTouchesRequired = touchs
+        tap.addTarget(self.base, action: #selector(self.base.dvt_didClickSelf))
+        self.base.addGestureRecognizer(tap)
     }
 }

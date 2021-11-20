@@ -2,14 +2,14 @@
 //  UIImage+.swift
 //
 //
-//  Created by darvintang on 2021/5/11.
+//  Created by darvin on 2021/5/11.
 //
 
 /*
 
  MIT License
 
- Copyright (c) 2021 darvintang http://blog.tcoding.cn
+ Copyright (c) 2021 darvin http://blog.tcoding.cn
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@
 
  */
 
+import DVTFoundation
 import UIKit
 
 public extension UIImage {
@@ -100,7 +101,65 @@ public extension UIImage {
         guard !colors.isEmpty else {
             return nil
         }
-        UIGraphicsBeginImageContextWithOptions(size, true, UIScreen.main.scale)
+        if colors.count == 1, let color = colors.first {
+            self.init(dvt: color)
+        } else {
+            UIGraphicsBeginImageContextWithOptions(size, true, UIScreen.main.scale)
+            defer {
+                UIGraphicsEndImageContext()
+            }
+            guard let context = UIGraphicsGetCurrentContext() else {
+                return nil
+            }
+            context.saveGState()
+
+            var startPoint: CGPoint = .zero
+            var endPoint: CGPoint = .zero
+
+            switch direction {
+                case .left2right:
+                    startPoint = CGPoint(x: 0, y: 0.5)
+                    endPoint = CGPoint(x: 1, y: 0.5)
+                case .top2bottom:
+                    startPoint = CGPoint(x: 0.5, y: 0)
+                    endPoint = CGPoint(x: 0.5, y: 1)
+                case .leftTop2rightBottom:
+                    startPoint = CGPoint(x: 0, y: 0)
+                    endPoint = CGPoint(x: 1, y: 1)
+                case .leftBottom2rightTop:
+                    startPoint = CGPoint(x: 0, y: 1)
+                    endPoint = CGPoint(x: 1, y: 0)
+            }
+
+            let interval = 1.0 / CGFloat(colors.count)
+            let startLocation = interval / 2
+            var locations: [NSNumber] = []
+            for i in 0 ..< colors.count {
+                let num = NSNumber(floatLiteral: interval * CGFloat(i) + startLocation)
+                locations.append(num)
+            }
+            let gradientLayer = CAGradientLayer()
+            gradientLayer.colors = colors.map({ $0.cgColor })
+            gradientLayer.locations = locations
+            gradientLayer.startPoint = startPoint
+            gradientLayer.endPoint = endPoint
+            gradientLayer.frame = CGRect(origin: .zero, size: size)
+            gradientLayer.render(in: context)
+            let outImage = UIGraphicsGetImageFromCurrentImageContext()
+            context.restoreGState()
+            if let cgImage = outImage?.cgImage {
+                self.init(cgImage: cgImage)
+            } else {
+                return nil
+            }
+        }
+    }
+}
+
+extension UIImage: NameSpace {}
+public extension BaseWrapper where DT: UIImage {
+    func cornerRadius(corner: UIRectCorner = .allCorners, _ radius: CGFloat) -> UIImage? {
+        UIGraphicsBeginImageContextWithOptions(self.base.size, true, self.base.scale)
         defer {
             UIGraphicsEndImageContext()
         }
@@ -108,43 +167,24 @@ public extension UIImage {
             return nil
         }
         context.saveGState()
-
-        var startPoint: CGPoint = .zero
-        var endPoint: CGPoint = .zero
-
-        switch direction {
-            case .left2right:
-                startPoint = CGPoint(x: 0, y: 0.5 * size.height)
-                endPoint = CGPoint(x: size.width, y: 0.5 * size.height)
-            case .top2bottom:
-                startPoint = CGPoint(x: 0.5 * size.width, y: 0)
-                endPoint = CGPoint(x: 0.5 * size.width, y: size.height)
-            case .leftTop2rightBottom:
-                startPoint = CGPoint(x: 0, y: 0)
-                endPoint = CGPoint(x: size.width, y: size.height)
-            case .leftBottom2rightTop:
-                startPoint = CGPoint(x: 0, y: size.height)
-                endPoint = CGPoint(x: size.width, y: 0)
+        let rect = CGRect(origin: .zero, size: self.base.size)
+        if let cgImage = self.base.cgImage {
+            context.draw(cgImage, in: rect)
         }
-
-        let interval = 1.0 / CGFloat(colors.count)
-        let startLocation = interval / 2
-        var locations: [CGFloat] = []
-        for i in 0 ..< colors.count {
-            let num = interval * CGFloat(i) + startLocation
-            locations.append(num)
-        }
-        let colorSpace = colors.first!.cgColor.colorSpace
-        guard let gradient = CGGradient(colorsSpace: colorSpace, colors: colors.compactMap({ $0.cgColor }) as CFArray, locations: &locations) else {
-            return nil
-        }
-        context.drawLinearGradient(gradient, start: startPoint, end: endPoint, options: [.drawsBeforeStartLocation, .drawsAfterEndLocation])
+        context.addPath(UIBezierPath(roundedRect: rect, byRoundingCorners: corner, cornerRadii: CGSize(width: radius, height: radius)).cgPath)
+        context.clip()
         let outImage = UIGraphicsGetImageFromCurrentImageContext()
         context.restoreGState()
-        if let cgImage = outImage?.cgImage {
-            self.init(cgImage: cgImage)
-        } else {
-            return nil
-        }
+        return outImage
+    }
+
+    func to(new width: CGFloat) -> UIImage? {
+        let height = self.base.size.height / self.base.size.width * width
+        let newSize = CGSize(width: width, height: height)
+        UIGraphicsBeginImageContextWithOptions(newSize, false, self.base.scale)
+        self.base.draw(in: CGRect(origin: .zero, size: newSize))
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return newImage
     }
 }

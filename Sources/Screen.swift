@@ -64,7 +64,7 @@ public extension BaseWrapper where DT == Bool {
     /// 刘海屏
     @available(iOS 11.0, *)
     static var isAlienScreen: Bool {
-        (UIApplication.dvt.mainWindow?.safeAreaInsets.bottom ?? 0) > 0
+        (UIApplication.dvt.activeWindow?.safeAreaInsets.bottom ?? 0) > 0
     }
 
     static var isLandscape: Bool {
@@ -88,7 +88,6 @@ public extension BaseWrapper where DT == CGSize {
     }
 }
 
-fileprivate var CGFloat_STATUS_HEIGHT: CGFloat?
 extension CGFloat: NameSpace {}
 public extension BaseWrapper where DT == CGFloat {
     /// 屏幕宽度
@@ -105,7 +104,7 @@ public extension BaseWrapper where DT == CGFloat {
     static var statusHeight: CGFloat {
         if #available(iOS 11.0, *) {
             if Bool.dvt.isAlienScreen {
-                return UIApplication.dvt.mainWindow?.safeAreaInsets.top ?? 0
+                return UIApplication.dvt.activeWindow?.safeAreaInsets.top ?? 0
             }
         }
         return Bool.dvt.isLandscape ? 0 : 20.0
@@ -115,7 +114,7 @@ public extension BaseWrapper where DT == CGFloat {
     static var safeBottomHeight: CGFloat {
         if #available(iOS 11.0, *) {
             if .dvt.isAlienScreen {
-                return UIApplication.dvt.mainWindow?.safeAreaInsets.bottom ?? 0
+                return UIApplication.dvt.activeWindow?.safeAreaInsets.bottom ?? 0
             }
         }
         return 0

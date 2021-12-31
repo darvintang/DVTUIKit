@@ -1,8 +1,8 @@
 //
-//  UIApplication.swift
+//  DVTViewController.swift
 //
 //
-//  Created by darvin on 2021/10/12.
+//  Created by darvin on 2022/1/1.
 //
 
 /*
@@ -34,17 +34,10 @@
 import DVTFoundation
 import UIKit
 
-extension UIApplication: NameSpace { }
+public protocol DVTViewControllerProtocol {
+}
 
-public extension BaseWrapper where DT == UIApplication {
-    static var activeWindow: UIWindow? {
-        var window: UIWindow?
-        if let tempWindow = UIApplication.shared.delegate?.window {
-            window = tempWindow
-        }
-        if window == nil, #available(iOS 13.0, *) {
-            window = UIApplication.shared.connectedScenes.filter({ $0.activationState == .foregroundActive }).compactMap({ $0 as? UIWindowScene }).first?.windows.first
-        }
-        return window
-    }
+extension UIViewController: NameSpace { }
+
+extension BaseWrapper where DT: UIViewController, DT: DVTViewControllerProtocol {
 }

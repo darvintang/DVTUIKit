@@ -118,8 +118,8 @@ private extension UIView {
 }
 
 public extension BaseWrapper where DT: UIView {
-    @available(*, deprecated, message: "请使用addTapGesture(_:touchs:block:)")
-    mutating func addTap(_ taps: Int = 1, touchs: Int = 1, block clickBlock: @escaping (DT) -> Void) {
+    @available(*, unavailable, message: "请使用addTapGesture(_:touchs:block:)")
+    func addTap(_ taps: Int = 1, touchs: Int = 1, block clickBlock: @escaping (DT) -> Void) {
         self.addTapGesture(taps, touchs: touchs, block: clickBlock)
     }
 
@@ -128,7 +128,7 @@ public extension BaseWrapper where DT: UIView {
     ///   - taps: 点击次数
     ///   - touchs: 触摸点数
     ///   - clickBlock: 执行的闭包
-    mutating func addTapGesture(_ taps: Int = 1, touchs: Int = 1, block clickBlock: @escaping (DT) -> Void) {
+    func addTapGesture(_ taps: Int = 1, touchs: Int = 1, block clickBlock: @escaping (DT) -> Void) {
         if self.base is UIButton {
             assert(false, "不能给\(self.base.classForCoder)添加点击事件")
             return

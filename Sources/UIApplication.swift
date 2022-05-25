@@ -43,7 +43,11 @@ public extension BaseWrapper where DT == UIApplication {
             window = tempWindow
         }
         if window == nil, #available(iOS 13.0, *) {
-            window = UIApplication.shared.connectedScenes.filter({ $0.activationState == .foregroundActive }).compactMap({ $0 as? UIWindowScene }).first?.windows.first
+            if UIApplication.shared.connectedScenes.count == 1 {
+                window = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.windows.first
+            } else {
+                window = UIApplication.shared.connectedScenes.filter({ $0.activationState == .foregroundActive }).compactMap({ $0 as? UIWindowScene }).first?.windows.first
+            }
         }
         return window
     }

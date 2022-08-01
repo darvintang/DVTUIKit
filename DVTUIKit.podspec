@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'DVTUIKit'
-  s.version          = '1.2'
+  s.version          = '1.2.1'
   s.summary          = 'DVTUIKit'
 
   s.description      = <<-DESC
@@ -17,7 +17,7 @@ Pod::Spec.new do |s|
 
   s.source_files = 'Sources/**/*.swift'
 
-  s.dependency 'DVTFoundation', '>= 1.3'
+  s.dependency 'DVTFoundation', '~> 1.3.0'
 
   s.swift_version = '5'
   s.requires_arc  = true

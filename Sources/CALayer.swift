@@ -1,8 +1,8 @@
 //
-//  ViewController.swift
+//  CALayer.swift
 //  DVTUIKit
 //
-//  Created by darvin on 2022/1/1.
+//  Created by darvin on 2022/8/5.
 //
 
 /*
@@ -34,10 +34,24 @@
 import DVTFoundation
 import UIKit
 
-public protocol DVTViewControllerProtocol {
-}
+extension CALayer: NameSpace {}
+public extension BaseWrapper where BaseType: CALayer {
+    var image: UIImage? {
+        UIGraphicsBeginImageContextWithOptions(self.base.bounds.size, self.base.isOpaque, UIScreen.main.scale)
+        defer {
+            UIGraphicsEndImageContext()
+        }
+        guard let context = UIGraphicsGetCurrentContext() else {
+            return nil
+        }
+        context.saveGState()
+        self.base.render(in: context)
+        let outImage = UIGraphicsGetImageFromCurrentImageContext()
+        context.restoreGState()
+        return outImage
+    }
 
-extension UIViewController: NameSpace { }
-
-extension BaseWrapper where BaseType: UIViewController, BaseType: DVTViewControllerProtocol {
+    var cgImage: CGImage? {
+        self.image?.cgImage
+    }
 }

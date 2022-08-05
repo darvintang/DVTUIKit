@@ -1,8 +1,8 @@
 //
-//  ViewController.swift
+//  File.swift
 //  DVTUIKit
 //
-//  Created by darvin on 2022/1/1.
+//  Created by darvin on 2021/10/13.
 //
 
 /*
@@ -34,10 +34,16 @@
 import DVTFoundation
 import UIKit
 
-public protocol DVTViewControllerProtocol {
-}
+extension UIFont: NameSpace {}
 
-extension UIViewController: NameSpace { }
-
-extension BaseWrapper where BaseType: UIViewController, BaseType: DVTViewControllerProtocol {
+public extension BaseWrapper where BaseType == UIFont {
+    static func ultraLight(of fontSize: CGFloat) -> UIFont { .systemFont(ofSize: fontSize, weight: .ultraLight) }
+    static func thin(of fontSize: CGFloat) -> UIFont { .systemFont(ofSize: fontSize, weight: .thin) }
+    static func light(of fontSize: CGFloat) -> UIFont { .systemFont(ofSize: fontSize, weight: .light) }
+    static func regular(of fontSize: CGFloat) -> UIFont { .systemFont(ofSize: fontSize, weight: .regular) }
+    static func medium(of fontSize: CGFloat) -> UIFont { .systemFont(ofSize: fontSize, weight: .medium) }
+    static func semibold(of fontSize: CGFloat) -> UIFont { .systemFont(ofSize: fontSize, weight: .semibold) }
+    static func bold(of fontSize: CGFloat) -> UIFont { .systemFont(ofSize: fontSize, weight: .bold) }
+    static func heavy(of fontSize: CGFloat) -> UIFont { .systemFont(ofSize: fontSize, weight: .heavy) }
+    static func black(of fontSize: CGFloat) -> UIFont { .systemFont(ofSize: fontSize, weight: .black) }
 }

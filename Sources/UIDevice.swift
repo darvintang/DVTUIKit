@@ -1,8 +1,8 @@
 //
-//  ViewController.swift
+//  UIDevice.swift
 //  DVTUIKit
 //
-//  Created by darvin on 2022/1/1.
+//  Created by darvin on 2021/4/23.
 //
 
 /*
@@ -34,10 +34,17 @@
 import DVTFoundation
 import UIKit
 
-public protocol DVTViewControllerProtocol {
-}
+extension UIDevice: NameSpace {}
 
-extension UIViewController: NameSpace { }
-
-extension BaseWrapper where BaseType: UIViewController, BaseType: DVTViewControllerProtocol {
+public extension BaseWrapper where BaseType == UIDevice {
+    var model: String {
+        var systemInfo = utsname()
+        uname(&systemInfo)
+        let machineMirror = Mirror(reflecting: systemInfo.machine)
+        let identifier = machineMirror.children.reduce("") { identifier, element in
+            guard let value = element.value as? Int8, value != 0 else { return identifier }
+            return identifier + String(UnicodeScalar(UInt8(value)))
+        }
+        return identifier
+    }
 }

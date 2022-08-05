@@ -34,15 +34,15 @@
 import DVTFoundation
 import UIKit
 
-private extension UIButton {
+private extension UIControl {
     static var TargetsKey: Int8 = 0
-    var targets: [UIButtonEventTarget] {
+    var targets: [UIControlEventTarget] {
         set {
             objc_setAssociatedObject(self, &Self.TargetsKey, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
         }
         get {
-            var reslist: [UIButtonEventTarget] = []
-            if let list = objc_getAssociatedObject(self, &Self.TargetsKey) as? [UIButtonEventTarget] {
+            var reslist: [UIControlEventTarget] = []
+            if let list = objc_getAssociatedObject(self, &Self.TargetsKey) as? [UIControlEventTarget] {
                 reslist = list
             } else {
                 self.targets = reslist
@@ -51,8 +51,8 @@ private extension UIButton {
         }
     }
 
-    func addEvent(_ event: UIControl.Event, and clickBlock: @escaping (UIButton) -> Void) {
-        let target = UIButtonEventTarget(self, for: event) {
+    func addEvent(_ event: UIControl.Event, and clickBlock: @escaping (UIControl) -> Void) {
+        let target = UIControlEventTarget(self, for: event) {
             clickBlock(self)
         }
         self.addTarget(target, action: #selector(target.didClick), for: event)
@@ -66,14 +66,14 @@ private extension UIButton {
         }
     }
 
-    class UIButtonEventTarget {
-        init(_ btn: UIButton, for event: UIControl.Event, and clickBlock: @escaping () -> Void) {
+    class UIControlEventTarget {
+        init(_ btn: UIControl, for event: UIControl.Event, and clickBlock: @escaping () -> Void) {
             self.btn = btn
             self.event = event
             self.clickBlock = clickBlock
         }
 
-        let btn: UIButton
+        let btn: UIControl
         let event: UIControl.Event
         let clickBlock: () -> Void
 
@@ -83,10 +83,10 @@ private extension UIButton {
     }
 }
 
-public extension BaseWrapper where DT: UIButton {
-    mutating func add(for event: UIControl.Event = .touchUpInside, block clickBlock: @escaping (DT) -> Void) {
+public extension BaseWrapper where BaseType: UIControl {
+    func add(for event: UIControl.Event = .touchUpInside, block clickBlock: @escaping (BaseType) -> Void) {
         self.base.addEvent(event) { tbtn in
-            if let ttbtn = tbtn as? DT {
+            if let ttbtn = tbtn as? BaseType {
                 clickBlock(ttbtn)
             }
         }

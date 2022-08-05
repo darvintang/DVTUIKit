@@ -1,8 +1,8 @@
 //
-//  ViewController.swift
+//  CGSize.swift
 //  DVTUIKit
 //
-//  Created by darvin on 2022/1/1.
+//  Created by darvin on 2022/8/6.
 //
 
 /*
@@ -34,10 +34,10 @@
 import DVTFoundation
 import UIKit
 
-public protocol DVTViewControllerProtocol {
-}
-
-extension UIViewController: NameSpace { }
-
-extension BaseWrapper where BaseType: UIViewController, BaseType: DVTViewControllerProtocol {
+extension CGSize: NameSpace {}
+public extension BaseWrapper where BaseType == CGSize {
+    /// 屏幕大小
+    static var screenSize: CGSize {
+        return CGRect.dvt.screenBounds.size
+    }
 }

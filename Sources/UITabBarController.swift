@@ -1,8 +1,8 @@
 //
-//  ViewController.swift
+//  UITabBarController.swift
 //  DVTUIKit
 //
-//  Created by darvin on 2022/1/1.
+//  Created by darvin on 2021/10/12.
 //
 
 /*
@@ -34,10 +34,11 @@
 import DVTFoundation
 import UIKit
 
-public protocol DVTViewControllerProtocol {
-}
-
-extension UIViewController: NameSpace { }
-
-extension BaseWrapper where BaseType: UIViewController, BaseType: DVTViewControllerProtocol {
+public extension BaseWrapper where BaseType: UITabBarController {
+    @discardableResult func addChild(_ child: UIViewController, title: String? = nil, image: UIImage?, select sImage: UIImage? = nil) -> UITabBarItem {
+        let tabbarItem = UITabBarItem(title: title, image: image, selectedImage: sImage)
+        child.tabBarItem = tabbarItem
+        self.base.addChild(child)
+        return tabbarItem
+    }
 }

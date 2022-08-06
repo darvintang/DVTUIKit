@@ -68,12 +68,12 @@ public extension BaseWrapper where BaseType == CGRect {
     ///   - to: 置入
     ///   - mode: 内容模式
     /// - Returns: 结果
-    func into(from: CGRect, fromScale: CGFloat, to: CGRect, mode: UIView.ContentMode) -> CGRect {
+    func into(from: CGSize, fromScale: CGFloat, to: CGRect, mode: UIView.ContentMode) -> CGRect {
         let showSize = to.size
-        let oldSize = from.size
+        let oldSize = from
 
         let rect = self.base
-        var scale: CGFloat = fromScale
+        var scale: CGFloat = 1 / fromScale
         var offsetX: CGFloat = (showSize.width - oldSize.width * scale) / 2
         var offsetY: CGFloat = (showSize.height - oldSize.height * scale) / 2
 

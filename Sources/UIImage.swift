@@ -153,7 +153,7 @@ public extension BaseWrapper where BaseType: UIImage {
         return UIGraphicsGetImageFromCurrentImageContext()
     }
 
-    /// 从图片中截取二维码(条形码)的图像
+    /// 从图片中截取二维码的图像
     /// - Parameter feature: 编码信息
     /// - Returns: 截取的后的图片
     func image(feature: CIQRCodeFeature) -> UIImage? {
@@ -194,8 +194,8 @@ public extension BaseWrapper where BaseType: UIImage {
         return UIImage(cgImage: imagePartRef)
     }
 
-    /// 图片里面的编码
-    var codes: [CIQRCodeFeature] {
+    /// 图片里面的二维码
+    var qrCodes: [CIQRCodeFeature] {
         guard let ciImage = CIImage(image: self.base), let detector = CIDetector(ofType: CIDetectorTypeQRCode, context: nil, options: [CIDetectorAccuracy: CIDetectorAccuracyHigh]) else {
             return []
         }

@@ -40,4 +40,8 @@ public extension BaseWrapper where BaseType == CGSize {
     static var screenSize: CGSize {
         return CGRect.dvt.screenBounds.size
     }
+
+    func convertRect(_ scale: CGFloat) -> CGSize {
+        CGSize(width: self.base.width * scale, height: self.base.height * scale)
+    }
 }

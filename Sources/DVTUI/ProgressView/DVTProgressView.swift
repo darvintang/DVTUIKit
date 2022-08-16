@@ -332,8 +332,8 @@ open class DVTProgressView: DVTUIView {
         self.backgroundColor = .clear
         self.thumbImage = UIImage(dvt: "icon_thumb")
         self.isEnabled = true
-        self.isRound = true
         self.isPrompt = true
+        self.updaterRound()
     }
 
     // MARK: - 手势

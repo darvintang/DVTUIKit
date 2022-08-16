@@ -218,8 +218,9 @@ public extension UIImage {
     ///   - color: 图片颜色
     ///   - size: 图片大小
     convenience init?(dvt color: UIColor, size: CGSize = CGSize(width: 10, height: 10)) {
-        let rect = CGRect(x: 0.0, y: 0.0, width: size.width, height: size.height)
-        UIGraphicsBeginImageContextWithOptions(size, false, UIScreen.main.scale)
+        let scale = UIScreen.main.scale
+        let rect = CGRect(x: 0.0, y: 0.0, width: size.width * scale, height: size.height * scale)
+        UIGraphicsBeginImageContextWithOptions(size.dvt.convertRect(scale), false, scale)
         guard let context = UIGraphicsGetCurrentContext() else {
             return nil
         }

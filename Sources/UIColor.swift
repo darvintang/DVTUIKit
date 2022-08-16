@@ -65,7 +65,7 @@ public extension BaseWrapper where BaseType == UIColor {
     /// 给现有的颜色添加一个透明度
     /// - Parameter alpha: 透明度
     /// - Returns: 新的颜色
-    func alpha(_ alpha: CGFloat = 1) -> UIColor {
+    func alpha(_ alpha: CGFloat) -> UIColor {
         if #available(iOS 13.0, *) {
             if !self.isDynamic {
                 let ciColor = CIColor(cgColor: self.base.cgColor)

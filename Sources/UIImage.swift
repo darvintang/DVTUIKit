@@ -216,9 +216,9 @@ public extension UIImage {
     /// 创建一张纯色的图片
     /// - Parameters:
     ///   - color: 图片颜色
-    ///   - size: 图片大小
-    convenience init?(dvt color: UIColor, size: CGSize = CGSize(width: 10, height: 10)) {
-        let scale = UIScreen.main.scale
+    ///   - size: 图片大小，逻辑像素
+    ///   - scale: 倍率
+    convenience init?(dvt color: UIColor, size: CGSize = CGSize(width: 10, height: 10), scale: CGFloat = UIScreen.main.scale) {
         let rect = CGRect(x: 0.0, y: 0.0, width: size.width * scale, height: size.height * scale)
         UIGraphicsBeginImageContextWithOptions(size.dvt.convertRect(scale), false, scale)
         guard let context = UIGraphicsGetCurrentContext() else {

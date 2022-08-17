@@ -284,7 +284,7 @@ open class DVTSlideView: DVTProgressView {
         btn.isUserInteractionEnabled = false
         btn.titleLabel?.font = UIFont.dvt.regular(of: 15)
         btn.titleEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 6, right: 0)
-        btn.setBackgroundImage(UIImage(dvt: "bg_progress"), for: .normal)
+        btn.setBackgroundImage(.current("bg_progress"), for: .normal)
         btn.sizeToFit()
         return btn
     }()
@@ -373,7 +373,7 @@ open class DVTSlideView: DVTProgressView {
     override fileprivate func setDefault() {
         super.setDefault()
         self.isPrompt = true
-        self.thumbImage = UIImage(dvt: "icon_thumb")
+        self.thumbImage = .current("icon_thumb")
         self.thumbImageView.addGestureRecognizer(self.panGesture)
     }
 

@@ -33,12 +33,24 @@
 
 import UIKit
 
+extension Bundle {
+    private class DVTUIKitBundle {
+    }
+
+    fileprivate static var current: Bundle = {
+        Bundle(for: DVTUIKitBundle.self)
+    }()
+}
+
 extension UIImage {
-    convenience init?(dvt name: String) {
-        if let path = Bundle.main.path(forResource: "DVTUIKit_DVTUIKit", ofType: "bundle") {
-            self.init(named: name, in: Bundle(path: path), compatibleWith: .none)
-        } else {
-            self.init(named: name)
+    static func current(_ name: String) -> Self? {
+        let named = "DVTUIKit_\(name)"
+        guard let image = Self(named: named, in: Bundle.current, compatibleWith: .none) else {
+            guard let path = Bundle.main.path(forResource: "DVTUIKit_DVTUIKit", ofType: "bundle"), let image = Self(named: named, in: Bundle(path: path), compatibleWith: .none) else {
+                return Self(named: named)
+            }
+            return image
         }
+        return image
     }
 }

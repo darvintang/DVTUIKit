@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'DVTUIKit'
-  s.version          = '2.0.3'
+  s.version          = '2.0.4'
   s.summary          = 'DVTUIKit'
 
   s.description      = <<-DESC
@@ -16,6 +16,7 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = '12.0'
 
   s.source_files = 'Sources/**/*.swift'
+  s.resources = 'Sources/DVTUI/*.xcassets'
 
   s.dependency 'DVTFoundation', '~> 2.0.1'
 

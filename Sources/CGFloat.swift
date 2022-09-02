@@ -66,6 +66,26 @@ public extension BaseWrapper where BaseType == CGFloat {
         return 0
     }
 
+    /// 异形屏 机型 左边保留区域宽度，横屏的时候有效
+    static var safeLeftWidth: CGFloat {
+        if #available(iOS 11.0, *) {
+            if .dvt.isAlienScreen {
+                return UIApplication.dvt.activeWindow?.safeAreaInsets.left ?? 0
+            }
+        }
+        return 0
+    }
+
+    /// 异形屏 机型 右边保留区域宽度，横屏的时候有效
+    static var safeRightWidth: CGFloat {
+        if #available(iOS 11.0, *) {
+            if .dvt.isAlienScreen {
+                return UIApplication.dvt.activeWindow?.safeAreaInsets.right ?? 0
+            }
+        }
+        return 0
+    }
+
     /// tabbar的安全高度
     static var tabBarHeight: CGFloat {
         return self.safeBottomHeight + 49.0

@@ -1,8 +1,8 @@
 //
-//  DVTUIView.swift
+//  DVTUIKit.swift
 //  DVTUIKit
 //
-//  Created by darvin on 2022/8/15.
+//  Created by darvin on 2022/8/25.
 //
 
 /*
@@ -32,26 +32,18 @@
  */
 
 import UIKit
+public struct DVTUIKitConfig {
+    static var useLoger = true
+}
 
-open class DVTUIView: UIView {
-    override public init(frame: CGRect) {
-        super.init(frame: frame)
-        self.didInitialize()
-    }
-
-    public required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        self.didInitialize()
-    }
-
-    open func didInitialize() {
-        self.setupSubviews()
-        self.makeLayoutSubviews()
-    }
-
-    open func setupSubviews() {
-    }
-
-    open func makeLayoutSubviews() {
-    }
+func loger(_ items: Any..., function: String = #function, file: String = #file, line: Int = #line) {
+    #if DEBUG
+        if !DVTUIKitConfig.useLoger {
+            return
+        }
+        items.forEach { item in
+            print(item, separator: "", terminator: " ")
+        }
+        print("")
+    #endif
 }

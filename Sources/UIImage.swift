@@ -343,3 +343,12 @@ public extension UIImage {
         }
     }
 }
+
+public extension UIImage {
+    convenience init?(base64 string: String, scale: CGFloat = 1) {
+        guard let data = string.dvt.base64Data else {
+            return nil
+        }
+        self.init(data: data, scale: scale)
+    }
+}

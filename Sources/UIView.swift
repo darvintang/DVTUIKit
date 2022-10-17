@@ -192,3 +192,40 @@ public extension BaseWrapper where BaseType: UIView {
         }
     }
 }
+
+public extension UIView {
+    class WatermarkView: UIView {
+        @available(*, unavailable, message: "禁止修改")
+        override public var isUserInteractionEnabled: Bool {
+            willSet {
+                fatalError("不能修改isUserInteractionEnabled属性")
+            }
+        }
+
+        override public init(frame: CGRect) {
+            super.init(frame: frame)
+            super.isUserInteractionEnabled = false
+        }
+
+        required init?(coder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
+    }
+
+    private static var WatermarkKey: Int8 = 0
+    fileprivate var watermarkView: WatermarkView {
+        guard let view = objc_getAssociatedObject(self, &Self.WatermarkKey) as? WatermarkView else {
+            let view = WatermarkView()
+            self.addSubview(view)
+            objc_setAssociatedObject(self, &Self.WatermarkKey, view, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            return view
+        }
+        return view
+    }
+}
+
+public extension BaseWrapper where BaseType: UIView {
+    var watermark: UIView.WatermarkView {
+        self.base.watermarkView
+    }
+}

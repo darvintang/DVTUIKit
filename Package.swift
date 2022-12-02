@@ -18,7 +18,7 @@ let package = Package(
     ],
     
     dependencies: [
-        .package(url: "https://github.com/darvintang/DVTFoundation.git", .upToNextMajor(from: "2.0.1"))
+        .package(url: "https://github.com/darvintang/DVTFoundation.git", .upToNextMajor(from: "2.0.3"))
     ],
     
     targets: [

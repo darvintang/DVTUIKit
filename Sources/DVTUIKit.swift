@@ -32,18 +32,3 @@
  */
 
 import UIKit
-public struct DVTUIKitConfig {
-    static var useLoger = true
-}
-
-func loger(_ items: Any..., function: String = #function, file: String = #file, line: Int = #line) {
-    #if DEBUG
-        if !DVTUIKitConfig.useLoger {
-            return
-        }
-        items.forEach { item in
-            print(item, separator: "", terminator: " ")
-        }
-        print("")
-    #endif
-}

@@ -37,7 +37,6 @@ import UIKit
 extension UIColor: NameSpace {}
 
 public extension BaseWrapper where BaseType == UIColor {
-    @available(iOS 13.0, *)
     var isDynamic: Bool {
         guard let cls = NSClassFromString("UI" + "Dynamic" + "Color") else {
             return false
@@ -47,7 +46,6 @@ public extension BaseWrapper where BaseType == UIColor {
 
     /// 将当前颜色转化成跟随系统的动态颜色，基准为浅色，如果该颜色已经是动态的了就不会再转化了
     /// - Returns: 返回一个动态颜色
-    @available(iOS 13.0, *)
     func dynamic() -> UIColor {
         if self.isDynamic {
             return self.base
@@ -66,16 +64,11 @@ public extension BaseWrapper where BaseType == UIColor {
     /// - Parameter alpha: 透明度
     /// - Returns: 新的颜色
     func alpha(_ alpha: CGFloat) -> UIColor {
-        if #available(iOS 13.0, *) {
-            if !self.isDynamic {
-                let ciColor = CIColor(cgColor: self.base.cgColor)
-                return UIColor(red: ciColor.red, green: ciColor.green, blue: ciColor.blue, alpha: alpha)
-            }
-            return UIColor.init { _ in
-                let ciColor = CIColor(cgColor: self.base.cgColor)
-                return UIColor(red: ciColor.red, green: ciColor.green, blue: ciColor.blue, alpha: alpha)
-            }
-        } else {
+        if !self.isDynamic {
+            let ciColor = CIColor(cgColor: self.base.cgColor)
+            return UIColor(red: ciColor.red, green: ciColor.green, blue: ciColor.blue, alpha: alpha)
+        }
+        return UIColor.init { _ in
             let ciColor = CIColor(cgColor: self.base.cgColor)
             return UIColor(red: ciColor.red, green: ciColor.green, blue: ciColor.blue, alpha: alpha)
         }
@@ -129,7 +122,6 @@ public extension UIColor {
         self.init(red: red, green: green, blue: blue, alpha: tempAlpha)
     }
 
-    @available(iOS 13.0, *)
     convenience init(dvtLight: UIColor, dark: UIColor? = nil) {
         self.init { trait in
             if trait.userInterfaceStyle == .light {
@@ -140,7 +132,6 @@ public extension UIColor {
         }
     }
 
-    @available(iOS 13.0, *)
     convenience init(dvtLight: UInt64, dark: UInt64? = nil) {
         self.init { trait in
             var color = UIColor(dvt: dvtLight)
@@ -151,7 +142,6 @@ public extension UIColor {
         }
     }
 
-    @available(iOS 13.0, *)
     convenience init(dvtLight: String, dark: String? = nil) {
         self.init { trait in
             var color = UIColor(dvt: dvtLight)

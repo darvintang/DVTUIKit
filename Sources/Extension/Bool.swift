@@ -68,7 +68,7 @@ public extension BaseWrapper where BaseType == Bool {
     }
 
     static var isLandscape: Bool {
-        let orientation = UIApplication.shared.statusBarOrientation
+        let orientation = UIApplication.dvt.activeWindowScene?.interfaceOrientation ?? .portrait
         return orientation == .landscapeLeft || orientation == .landscapeRight
     }
 }

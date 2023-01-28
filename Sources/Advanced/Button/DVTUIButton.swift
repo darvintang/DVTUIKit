@@ -33,6 +33,10 @@
 
 import UIKit
 
+#if canImport(DVTUIKitExtension)
+    import DVTUIKitExtension
+#endif
+
 /// 可以设置图片位置的按钮
 ///
 /// 通过UIButtonConfiguration初始化的按钮设置图片方向按钮大小未验证

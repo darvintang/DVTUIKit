@@ -48,11 +48,7 @@ public extension BaseWrapper where BaseType == CGFloat {
 
     /// 状态栏安全高度
     static var statusHeight: CGFloat {
-        if #available(iOS 13.0, *) {
-            return UIApplication.dvt.activeWindowScene?.statusBarManager?.statusBarFrame.height ?? 0
-        } else {
-            return UIApplication.shared.statusBarFrame.height
-        }
+        return UIApplication.dvt.activeWindowScene?.statusBarManager?.statusBarFrame.height ?? 0
     }
 
     /// 异形屏 机型 顶部安全高度

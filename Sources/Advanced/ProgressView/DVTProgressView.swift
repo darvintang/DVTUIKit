@@ -33,6 +33,24 @@
 
 import UIKit
 
+#if canImport(DVTUIKitExtension)
+    import DVTUIKitExtension
+#endif
+
+#if canImport(DVTUIKitPublic)
+    import DVTUIKitPublic
+#endif
+
+fileprivate extension UIImage {
+    private static let bundleName = "DVTUIKit_DVTUIKitProgressView"
+
+    static func image(_ named: String) -> UIImage? {
+        let realName = "DVTUIKit_ProgressView_\(named)"
+        // (main) OR (cocoapods default) OR (cocoapods Frameworks (generate_multiple_pod_projects)) OR (Bundle SPM)
+        return UIImage(named: "main_" + realName) ?? UIImage(named: realName) ?? .dvt.image(DVTProgressView.classForCoder(), named: realName) ?? .dvt.image(self.bundleName, named: realName)
+    }
+}
+
 open class DVTProgressView: DVTUIView {
     fileprivate lazy var progressView: UIImageView = {
         let view = UIImageView()
@@ -284,7 +302,7 @@ open class DVTSlideView: DVTProgressView {
         btn.isUserInteractionEnabled = false
         btn.titleLabel?.font = UIFont.dvt.regular(of: 15)
         btn.titleEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 6, right: 0)
-        btn.setBackgroundImage(.current("bg_progress"), for: .normal)
+        btn.setBackgroundImage(.image("bg_progress_prompt"), for: .normal)
         btn.sizeToFit()
         return btn
     }()
@@ -373,7 +391,7 @@ open class DVTSlideView: DVTProgressView {
     override fileprivate func setDefault() {
         super.setDefault()
         self.isPrompt = true
-        self.thumbImage = .current("icon_thumb")
+        self.thumbImage = .image("icon_thumb")
         self.thumbImageView.addGestureRecognizer(self.panGesture)
     }
 

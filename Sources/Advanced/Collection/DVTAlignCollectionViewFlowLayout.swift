@@ -33,6 +33,10 @@
 
 import UIKit
 
+#if canImport(DVTUIKitExtension)
+    import DVTUIKitExtension
+#endif
+
 extension UICollectionView {
     public static let elementKindSectionBackground = "DVTUIKit.UICollectionView.ElementKindSectionBackground"
 }

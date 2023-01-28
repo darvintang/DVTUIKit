@@ -210,6 +210,24 @@ public extension BaseWrapper where BaseType: UIImage {
     }
 }
 
+public extension BaseWrapper where BaseType: UIImage {
+    static func image(_ bundle: Bundle, named: String) -> BaseType? {
+        BaseType(named: named, in: bundle, compatibleWith: .none)
+    }
+
+    static func image(_ bundle: String, named: String) -> BaseType? {
+        var tbundle: Bundle = .main
+        if let path = Bundle.main.path(forResource: bundle, ofType: "bundle") {
+            tbundle = Bundle(path: path) ?? .main
+        }
+        return self.image(tbundle, named: named)
+    }
+
+    static func image(_ current: AnyClass, named: String) -> BaseType? {
+        return self.image(Bundle(for: current), named: named)
+    }
+}
+
 // MARK: - 通过颜色初始化图片
 
 public extension UIImage {

@@ -42,7 +42,7 @@ let package = Package(
     ],
     
     dependencies: [
-        .package(url: "https://github.com/darvintang/DVTFoundation.git", .upToNextMinor(from: "2.0.5")),
+        .package(url: "https://github.com/darvintang/DVTFoundation.git", .upToNextMinor(from: "2.0.6")),
         .package(url: "https://github.com/darvintang/DVTLoger.git", .upToNextMinor(from: "2.0.2"))
     ],
     

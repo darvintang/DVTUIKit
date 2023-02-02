@@ -41,7 +41,7 @@ Pod::Spec.new do |s|
 
   s.subspec 'Extension' do |ss|
     ss.source_files = 'Sources/Extension/**.swift'
-    ss.dependency 'DVTFoundation', '~> 2.0.5'
+    ss.dependency 'DVTFoundation', '~> 2.0.6'
     ss.dependency 'DVTLoger'
   end
 

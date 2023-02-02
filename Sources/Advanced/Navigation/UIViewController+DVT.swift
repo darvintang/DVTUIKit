@@ -211,7 +211,7 @@ fileprivate extension UIViewController {
             objc_setAssociatedObject(self, &Self.DVT_ReplaceNavigationBarKey, weakContainer, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
         get {
-            (objc_getAssociatedObject(self, &Self.DVT_ReplaceNavigationBarKey) as? DVTWeakObjectContainer)?.object as? DVTTransitionNavigationBar
+            (objc_getAssociatedObject(self, &Self.DVT_ReplaceNavigationBarKey) as? DVTWeakObjectContainer<DVTTransitionNavigationBar>)?.object as? DVTTransitionNavigationBar
         }
     }
 }

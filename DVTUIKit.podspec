@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'DVTUIKit'
-  s.version          = '2.2.0'
+  s.version          = '2.2.1'
   s.summary          = 'DVTUIKit'
 
   s.description      = <<-DESC
@@ -16,6 +16,11 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = '13.0'
 
   s.subspec 'Advanced' do |ss|
+    ss.subspec 'Alert' do |sss|
+      sss.source_files = 'Sources/Advanced/Alert/**.swift'
+      sss.dependency "DVTUIKit/Advanced/ModalPresentation"
+    end
+
     ss.subspec 'Button' do |sss|
       sss.source_files = 'Sources/Advanced/Button/**.swift'
       sss.dependency "DVTUIKit/Extension"
@@ -25,9 +30,25 @@ Pod::Spec.new do |s|
       sss.source_files = 'Sources/Advanced/Collection/**.swift'
       sss.dependency "DVTUIKit/Extension"
     end
+
+    ss.subspec 'EmptyView' do |sss|
+      sss.source_files = 'Sources/Advanced/EmptyView/**.swift'
+      sss.dependency "DVTUIKit/Advanced/Public"
+    end
+
     ss.subspec 'Label' do |sss|
       sss.source_files = 'Sources/Advanced/Label/**.swift'
       sss.dependency "DVTUIKit/Extension"
+    end
+
+    ss.subspec 'ModalPresentation' do |sss|
+      sss.source_files = 'Sources/Advanced/ModalPresentation/**.swift'
+      sss.dependency "DVTUIKit/Extension"
+    end
+
+    ss.subspec 'MoreOperation' do |sss|
+      sss.source_files = 'Sources/Advanced/MoreOperation/**.swift'
+      sss.dependency "DVTUIKit/Advanced/ModalPresentation"
     end
 
     ss.subspec 'Navigation' do |sss|
@@ -46,6 +67,16 @@ Pod::Spec.new do |s|
       sss.dependency "DVTUIKit/Extension"
     end
 
+    ss.subspec 'TextField' do |sss|
+      sss.source_files = 'Sources/Advanced/TextField/**.swift'
+      sss.dependency "DVTUIKit/Extension"
+    end
+
+    ss.subspec 'TextView' do |sss|
+      sss.source_files = 'Sources/Advanced/TextView/**.swift'
+      sss.dependency "DVTUIKit/Extension"
+    end
+
     ss.subspec 'Tips' do |sss|
       sss.source_files = 'Sources/Advanced/Tips/**.swift'
       sss.resources = 'Sources/Advanced/Tips/**.{xcassets,xib}'
@@ -55,7 +86,7 @@ Pod::Spec.new do |s|
 
   s.subspec 'Extension' do |ss|
     ss.source_files = 'Sources/Extension/**.swift'
-    ss.dependency 'DVTFoundation', '~> 2.0.6'
+    ss.dependency 'DVTFoundation', '~> 2.1.0'
     ss.dependency 'DVTLoger'
   end
 

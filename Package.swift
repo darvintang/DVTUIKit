@@ -40,9 +40,9 @@ fileprivate enum RemotePackage: CaseIterable {
     var info: PackageInfo {
         switch self {
             case .foundation:
-                return PackageInfo(name: "DVTFoundation", version: "2.0.6")
+                return PackageInfo(name: "DVTFoundation", version: "2.1.0")
             case .loger:
-                return PackageInfo(name: "DVTLoger", version: "2.0.2")
+                return PackageInfo(name: "DVTLoger", version: "2.0.3")
         }
     }
 
@@ -104,17 +104,19 @@ fileprivate extension ProductInfoProtocol {
 fileprivate enum LocalPackage: String, ProductInfoProtocol {
     case oneself = "DVTUIKit"
     enum Advanced: String, ProductInfoProtocol {
-        case button, collection,
-             label,
-             navigation, progress,
-             `public`, tips
+        case alert, button, collection,
+             emptyView, label, modalPresentation,
+             moreOperation, navigation, progress,
+             `public`, textField, textView, tips
         var info: ProductInfo {
             let prefixPath = "Sources/Advanced/"
             var dependencies: [Self] = []
 
             switch self {
-                case .progress, .tips:
+                case .progress, .tips, .emptyView:
                     dependencies.append(.public)
+                case .alert, .moreOperation:
+                    dependencies.append(.modalPresentation)
                 default:
                     break
             }
@@ -122,8 +124,12 @@ fileprivate enum LocalPackage: String, ProductInfoProtocol {
                                dependencies: dependencies.map({ $0.info }) + [LocalPackage.Extension.oneself.info])
         }
 
+        // 首字母大写
         var uRawValue: String {
-            self.rawValue.capitalized
+            let count = self.rawValue.count
+            let first = self.rawValue.prefix(1).uppercased()
+            let last = self.rawValue.suffix(count - 1)
+            return "\(first + last)"
         }
     }
 

@@ -185,7 +185,7 @@ open class DVTUIButton: UIButton {
 
             var offsetx: CGFloat = 0
             switch self.contentHorizontalAlignment {
-                case .center:
+                case .center, .fill:
                     offsetx = max(0, (contentSize.width - iw - tw -
                             (self.position == .left ? (self.imageEdgeInsets.left + self.titleEdgeInsets.right + lspacing) : (self.imageEdgeInsets.right + self.titleEdgeInsets.left + rspacing))) / 2)
                 case .left, .leading:
@@ -261,7 +261,7 @@ open class DVTUIButton: UIButton {
             }
             var offsety: CGFloat = 0
             switch self.contentVerticalAlignment {
-                case .center:
+                case .center, .fill:
                     offsety = max(0, (contentSize.height - ih - th -
                             (self.position == .top ? (self.imageEdgeInsets.top + self.titleEdgeInsets.bottom + tspacing) : (self.imageEdgeInsets.bottom + self.titleEdgeInsets.top + bspacing))) / 2)
                 case .top:

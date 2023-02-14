@@ -166,39 +166,86 @@ public extension BaseWrapper where BaseType: UIView {
     }
 }
 
-public extension UIView {
-    class WatermarkView: UIView {
-        @available(*, unavailable, message: "禁止修改")
-        override public var isUserInteractionEnabled: Bool {
-            willSet {
-                fatalError("不能修改isUserInteractionEnabled属性")
-            }
-        }
-
-        override public init(frame: CGRect) {
-            super.init(frame: frame)
-            super.isUserInteractionEnabled = false
-        }
-
-        required init?(coder: NSCoder) {
-            fatalError("init(coder:) has not been implemented")
-        }
-    }
-
-    private static var WatermarkKey: Int8 = 0
-    fileprivate var watermarkView: WatermarkView {
-        guard let view = objc_getAssociatedObject(self, &Self.WatermarkKey) as? WatermarkView else {
-            let view = WatermarkView()
-            self.addSubview(view)
-            objc_setAssociatedObject(self, &Self.WatermarkKey, view, .OBJC_ASSOCIATION_COPY_NONATOMIC)
-            return view
-        }
-        return view
-    }
-}
-
 public extension BaseWrapper where BaseType: UIView {
-    var watermark: UIView.WatermarkView {
-        self.base.watermarkView
+    private func print(_ exception: NSException) {
+        var logerinfo = exception.name.rawValue
+        let reason = exception.reason ?? ""
+        if !reason.isEmpty {
+            logerinfo += "<\(reason)>"
+        }
+        dvtuiloger.error("使用 KVC 访问了 UIKit 的私有属性，触发了系统的 NSException: \(logerinfo)")
+    }
+
+    func value(forKey key: String) -> Any? {
+        var res: Any?
+        NSException.dvt.ignoreHandler {
+            res = self.base.value(forKey: key)
+        } completion: { exception in
+            self.print(exception)
+        }
+        return res
+    }
+
+    func setValue(_ value: Any?, forKey key: String) {
+        NSException.dvt.ignoreHandler {
+            self.base.setValue(value, forKey: key)
+        } completion: { exception in
+            self.print(exception)
+        }
+    }
+
+    func value(forKeyPath keyPath: String) -> Any? {
+        var res: Any?
+        NSException.dvt.ignoreHandler {
+            res = self.base.value(forKeyPath: keyPath)
+        } completion: { exception in
+            self.print(exception)
+        }
+        return res
+    }
+
+    func setValue(_ value: Any?, forKeyPath keyPath: String) {
+        NSException.dvt.ignoreHandler {
+            self.base.setValue(value, forKeyPath: keyPath)
+        } completion: { exception in
+            self.print(exception)
+        }
     }
 }
+
+// public extension UIView {
+//    class WatermarkView: UIView {
+//        @available(*, unavailable, message: "禁止修改")
+//        override public var isUserInteractionEnabled: Bool {
+//            willSet {
+//                fatalError("不能修改isUserInteractionEnabled属性")
+//            }
+//        }
+//
+//        override public init(frame: CGRect) {
+//            super.init(frame: frame)
+//            super.isUserInteractionEnabled = false
+//        }
+//
+//        required init?(coder: NSCoder) {
+//            fatalError("init(coder:) has not been implemented")
+//        }
+//    }
+//
+//    private static var WatermarkKey: Int8 = 0
+//    fileprivate var watermarkView: WatermarkView {
+//        guard let view = objc_getAssociatedObject(self, &Self.WatermarkKey) as? WatermarkView else {
+//            let view = WatermarkView()
+//            self.addSubview(view)
+//            objc_setAssociatedObject(self, &Self.WatermarkKey, view, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+//            return view
+//        }
+//        return view
+//    }
+// }
+//
+// public extension BaseWrapper where BaseType: UIView {
+//    var watermark: UIView.WatermarkView {
+//        self.base.watermarkView
+//    }
+// }

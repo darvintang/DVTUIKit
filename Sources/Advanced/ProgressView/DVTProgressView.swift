@@ -1,6 +1,6 @@
 //
 //  DVTProgressView.swift
-//  DVTUIKit
+//  DVTUIKit_Progress
 //
 //  Created by darvin on 2022/8/15.
 //
@@ -9,7 +9,7 @@
 
  MIT License
 
- Copyright (c) 2022 darvin http://blog.tcoding.cn
+ Copyright (c) 2023 darvin http://blog.tcoding.cn
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -33,21 +33,21 @@
 
 import UIKit
 
-#if canImport(DVTUIKitExtension)
-    import DVTUIKitExtension
+#if canImport(DVTUIKit_Extension)
+    import DVTUIKit_Extension
 #endif
 
-#if canImport(DVTUIKitPublic)
-    import DVTUIKitPublic
+#if canImport(DVTUIKit_Public)
+    import DVTUIKit_Public
 #endif
 
 fileprivate extension UIImage {
-    private static let bundleName = "DVTUIKit_DVTUIKitProgressView"
+    private static let bundleName = "DVTUIKit_DVTUIKitProgress"
 
     static func image(_ named: String) -> UIImage? {
-        let realName = "DVTUIKit_ProgressView_\(named)"
+        let realName = "DVTUIKit_Progress_\(named)"
         // (main) OR (cocoapods default) OR (cocoapods Frameworks (generate_multiple_pod_projects)) OR (Bundle SPM)
-        return UIImage(named: "main_" + realName) ?? UIImage(named: realName) ?? .dvt.image(DVTProgressView.classForCoder(), named: realName) ?? .dvt.image(self.bundleName, named: realName)
+        return UIImage(named: "main_" + realName) ?? UIImage(named: realName) ?? .dvt.image(DVTProgressView.self, named: realName) ?? .dvt.image(self.bundleName, named: realName)
     }
 }
 

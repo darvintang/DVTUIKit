@@ -1,8 +1,8 @@
 //
-//  DVTCollectionReusableView.swift
-//  DVTUIKit_Collection
+//  UIButton.swift
+//  DVTUIKit_Extension
 //
-//  Created by darvin on 2022/11/17.
+//  Created by darvin on 2023/2/6.
 //
 
 /*
@@ -31,27 +31,15 @@
 
  */
 
+import DVTFoundation
 import UIKit
 
-open class BaseCollectionReusableView: UICollectionReusableView {
-    override public init(frame: CGRect) {
-        super.init(frame: frame)
-        self.didInitialize()
-    }
-
-    public required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        self.didInitialize()
-    }
-
-    open func didInitialize() {
-        self.setupSubviews()
-        self.makeSubViewsConstraints()
-    }
-
-    open func setupSubviews() {
-    }
-
-    open func makeSubViewsConstraints() {
+public extension BaseWrapper where BaseType: UIButton {
+    func setBackgroundColor(_ color: UIColor?, for state: UIControl.State) {
+        if let tcolor = color {
+            self.base.setBackgroundImage(UIImage(dvt: tcolor), for: state)
+        } else {
+            self.base.setBackgroundImage(nil, for: state)
+        }
     }
 }

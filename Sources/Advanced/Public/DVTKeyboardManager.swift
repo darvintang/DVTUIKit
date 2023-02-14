@@ -1,6 +1,6 @@
 //
 //  DVTKeyboardManager.swift
-//  DVTUIKitPublic
+//  DVTUIKit_Public
 //
 //  Created by darvin on 2023/2/1.
 //
@@ -31,11 +31,11 @@
 
  */
 
+import DVTFoundation
 import UIKit
 
-#if canImport(DVTUIKitExtension)
-    import DVTFoundation
-    import DVTUIKitExtension
+#if canImport(DVTUIKit_Extension)
+    import DVTUIKit_Extension
 #endif
 
 public struct KeyboardInfo {
@@ -101,6 +101,7 @@ public class DVTKeyboardManager {
     fileprivate var didChangeMonitors: [KeyboardMonitor] = []
 
     private init() {
+        dvtuiloger.debug("开始监听键盘状态")
         NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardDidShow(_:)), name: UIResponder.keyboardDidShowNotification, object: nil)
 

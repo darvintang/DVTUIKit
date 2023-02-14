@@ -1,6 +1,6 @@
 //
 //  UIViewController+DVT.swift
-//  DVTUIKit
+//  DVTUIKit_Navigation
 //
 //  Created by darvin on 2023/1/9.
 //
@@ -9,7 +9,7 @@
 
  MIT License
 
- Copyright (c) 2022 darvin http://blog.tcoding.cn
+ Copyright (c) 2023 darvin http://blog.tcoding.cn
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,10 @@
 
 import DVTFoundation
 import UIKit
+
+#if canImport(DVTUIKit_Extension)
+    import DVTUIKit_Extension
+#endif
 
 public extension DVTUINavigationBarStyleDelegate {
     var dvt_navigationBarHidden: Bool { DVTUINavigationBarStyle.default.dvt_navigationBarHidden }

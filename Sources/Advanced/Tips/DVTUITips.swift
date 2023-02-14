@@ -1,6 +1,6 @@
 //
-//  DVTTips.swift
-//  DVTUIKitTips
+//  DVTUITips.swift
+//  DVTUIKit_Tips
 //
 //  Created by darvin on 2023/2/1.
 //
@@ -34,12 +34,12 @@
 import DVTFoundation
 import UIKit
 
-#if canImport(DVTUIKitExtension)
-    import DVTUIKitExtension
+#if canImport(DVTUIKit_Extension)
+    import DVTUIKit_Extension
 #endif
 
-#if canImport(DVTUIKitPublic)
-    import DVTUIKitPublic
+#if canImport(DVTUIKit_Public)
+    import DVTUIKit_Public
 #endif
 
 fileprivate extension UIImage {
@@ -48,11 +48,11 @@ fileprivate extension UIImage {
     static func image(_ named: String) -> UIImage? {
         let realName = "DVTUIKit_Tips_\(named)"
         // (main) OR (cocoapods default) OR (cocoapods Frameworks (generate_multiple_pod_projects)) OR (Bundle SPM)
-        return UIImage(named: "main_" + realName) ?? UIImage(named: realName) ?? .dvt.image(DVTTipsView.classForCoder(), named: realName) ?? .dvt.image(self.bundleName, named: realName)
+        return UIImage(named: "main_" + realName) ?? UIImage(named: realName) ?? .dvt.image(DVTUITipsView.self, named: realName) ?? .dvt.image(self.bundleName, named: realName)
     }
 }
 
-public class DVTTips {
+public class DVTUITips {
     public static var laodingTimeOut: TimeInterval = 30
     public static var defaultTimeOut: TimeInterval = 1.5
 }
@@ -62,15 +62,15 @@ public extension BaseWrapper where BaseType: UIView {
     /// - Parameter animation: 是否需要动画
     func hideAllTipsView(_ animation: Bool = true) {
         self.base.subviews.forEach { view in
-            if let tipsView = view as? DVTTipsView {
+            if let tipsView = view as? DVTUITipsView {
                 tipsView.hide(animation)
             }
         }
     }
 
     /// 获取所有的tipsView
-    var allTipsViews: [DVTTipsView] {
-        self.base.subviews.compactMap({ $0 as? DVTTipsView })
+    var allTipsViews: [DVTUITipsView] {
+        self.base.subviews.compactMap({ $0 as? DVTUITipsView })
     }
 }
 
@@ -78,12 +78,12 @@ public extension BaseWrapper where BaseType: UIView {
     @discardableResult
     func show(_ text: String? = nil, detailText: String? = nil,
               attributedText: NSAttributedString? = nil, attributedDetailText: NSAttributedString? = nil,
-              view: UIView? = nil, style: DVTTipsStyle = DVTTipsStyle(timeout: DVTTips.defaultTimeOut),
-              position: DVTTipsPosition = .center) -> DVTTipsView {
-        let tipsView = DVTTipsView(text, detailText: detailText,
-                                   attributedText: attributedText, attributedDetailText: attributedDetailText,
-                                   view: view, style: style,
-                                   position: position)
+              view: UIView? = nil, style: DVTUITipsStyle = DVTUITipsStyle(timeout: DVTUITips.defaultTimeOut),
+              position: DVTUITipsPosition = .center) -> DVTUITipsView {
+        let tipsView = DVTUITipsView(text, detailText: detailText,
+                                     attributedText: attributedText, attributedDetailText: attributedDetailText,
+                                     view: view, style: style,
+                                     position: position)
         tipsView.show(superview: self.base)
         return tipsView
     }
@@ -91,8 +91,8 @@ public extension BaseWrapper where BaseType: UIView {
     @discardableResult
     func showLoading(_ text: String? = nil, detailText: String? = nil,
                      attributedText: NSAttributedString? = nil, attributedDetailText: NSAttributedString? = nil,
-                     style: DVTTipsStyle = DVTTipsStyle(timeout: DVTTips.laodingTimeOut),
-                     position: DVTTipsPosition = .center) -> DVTTipsView {
+                     style: DVTUITipsStyle = DVTUITipsStyle(timeout: DVTUITips.laodingTimeOut),
+                     position: DVTUITipsPosition = .center) -> DVTUITipsView {
         return self.show(text, detailText: detailText,
                          attributedText: attributedText, attributedDetailText: attributedDetailText,
                          view: UIActivityIndicatorView(style: .large), style: style, position: position)
@@ -101,7 +101,7 @@ public extension BaseWrapper where BaseType: UIView {
     @discardableResult
     func showText(_ text: String? = nil, detailText: String? = nil,
                   attributedText: NSAttributedString? = nil, attributedDetailText: NSAttributedString? = nil,
-                  style: DVTTipsStyle = DVTTipsStyle(timeout: DVTTips.defaultTimeOut), position: DVTTipsPosition = .center) -> DVTTipsView {
+                  style: DVTUITipsStyle = DVTUITipsStyle(timeout: DVTUITips.defaultTimeOut), position: DVTUITipsPosition = .center) -> DVTUITipsView {
         return self.show(text, detailText: detailText,
                          attributedText: attributedText, attributedDetailText: attributedDetailText,
                          view: nil, style: style, position: position)
@@ -110,7 +110,7 @@ public extension BaseWrapper where BaseType: UIView {
     @discardableResult
     func showInfo(_ text: String? = nil, detailText: String? = nil,
                   attributedText: NSAttributedString? = nil, attributedDetailText: NSAttributedString? = nil,
-                  style: DVTTipsStyle = DVTTipsStyle(timeout: DVTTips.defaultTimeOut), position: DVTTipsPosition = .center) -> DVTTipsView {
+                  style: DVTUITipsStyle = DVTUITipsStyle(timeout: DVTUITips.defaultTimeOut), position: DVTUITipsPosition = .center) -> DVTUITipsView {
         return self.show(text, detailText: detailText,
                          attributedText: attributedText, attributedDetailText: attributedDetailText,
                          view: UIImageView(image: .image("info")), style: style, position: position)
@@ -119,7 +119,7 @@ public extension BaseWrapper where BaseType: UIView {
     @discardableResult
     func showError(_ text: String? = nil, detailText: String? = nil,
                    attributedText: NSAttributedString? = nil, attributedDetailText: NSAttributedString? = nil,
-                   style: DVTTipsStyle = DVTTipsStyle(timeout: DVTTips.defaultTimeOut), position: DVTTipsPosition = .center) -> DVTTipsView {
+                   style: DVTUITipsStyle = DVTUITipsStyle(timeout: DVTUITips.defaultTimeOut), position: DVTUITipsPosition = .center) -> DVTUITipsView {
         return self.show(text, detailText: detailText,
                          attributedText: attributedText, attributedDetailText: attributedDetailText,
                          view: UIImageView(image: .image("error")), style: style, position: position)
@@ -128,7 +128,7 @@ public extension BaseWrapper where BaseType: UIView {
     @discardableResult
     func showSuccess(_ text: String? = nil, detailText: String? = nil,
                      attributedText: NSAttributedString? = nil, attributedDetailText: NSAttributedString? = nil,
-                     style: DVTTipsStyle = DVTTipsStyle(timeout: DVTTips.defaultTimeOut), position: DVTTipsPosition = .center) -> DVTTipsView {
+                     style: DVTUITipsStyle = DVTUITipsStyle(timeout: DVTUITips.defaultTimeOut), position: DVTUITipsPosition = .center) -> DVTUITipsView {
         return self.show(text, detailText: detailText,
                          attributedText: attributedText, attributedDetailText: attributedDetailText,
                          view: UIImageView(image: .image("done")), style: style, position: position)
@@ -137,8 +137,8 @@ public extension BaseWrapper where BaseType: UIView {
     @discardableResult
     func showOnly(_ text: String? = nil, detailText: String? = nil,
                   attributedText: NSAttributedString? = nil, attributedDetailText: NSAttributedString? = nil,
-                  view: UIView? = nil, style: DVTTipsStyle = DVTTipsStyle(timeout: DVTTips.defaultTimeOut),
-                  position: DVTTipsPosition = .center) -> DVTTipsView {
+                  view: UIView? = nil, style: DVTUITipsStyle = DVTUITipsStyle(timeout: DVTUITips.defaultTimeOut),
+                  position: DVTUITipsPosition = .center) -> DVTUITipsView {
         self.hideAllTipsView(false)
         return self.show(text, detailText: detailText,
                          attributedText: attributedText, attributedDetailText: attributedDetailText,
@@ -148,8 +148,8 @@ public extension BaseWrapper where BaseType: UIView {
     @discardableResult
     func showOnlyLoading(_ text: String? = nil, detailText: String? = nil,
                          attributedText: NSAttributedString? = nil, attributedDetailText: NSAttributedString? = nil,
-                         style: DVTTipsStyle = DVTTipsStyle(timeout: DVTTips.laodingTimeOut),
-                         position: DVTTipsPosition = .center) -> DVTTipsView {
+                         style: DVTUITipsStyle = DVTUITipsStyle(timeout: DVTUITips.laodingTimeOut),
+                         position: DVTUITipsPosition = .center) -> DVTUITipsView {
         return self.showOnly(text, detailText: detailText,
                              attributedText: attributedText, attributedDetailText: attributedDetailText,
                              view: UIActivityIndicatorView(style: .large), style: style, position: position)
@@ -158,7 +158,7 @@ public extension BaseWrapper where BaseType: UIView {
     @discardableResult
     func showOnlyText(_ text: String? = nil, detailText: String? = nil,
                       attributedText: NSAttributedString? = nil, attributedDetailText: NSAttributedString? = nil,
-                      style: DVTTipsStyle = DVTTipsStyle(timeout: DVTTips.defaultTimeOut), position: DVTTipsPosition = .center) -> DVTTipsView {
+                      style: DVTUITipsStyle = DVTUITipsStyle(timeout: DVTUITips.defaultTimeOut), position: DVTUITipsPosition = .center) -> DVTUITipsView {
         return self.showOnly(text, detailText: detailText,
                              attributedText: attributedText, attributedDetailText: attributedDetailText,
                              view: nil, style: style, position: position)
@@ -167,7 +167,7 @@ public extension BaseWrapper where BaseType: UIView {
     @discardableResult
     func showOnlyInfo(_ text: String? = nil, detailText: String? = nil,
                       attributedText: NSAttributedString? = nil, attributedDetailText: NSAttributedString? = nil,
-                      style: DVTTipsStyle = DVTTipsStyle(timeout: DVTTips.defaultTimeOut), position: DVTTipsPosition = .center) -> DVTTipsView {
+                      style: DVTUITipsStyle = DVTUITipsStyle(timeout: DVTUITips.defaultTimeOut), position: DVTUITipsPosition = .center) -> DVTUITipsView {
         return self.showOnly(text, detailText: detailText,
                              attributedText: attributedText, attributedDetailText: attributedDetailText,
                              view: UIImageView(image: .image("info")), style: style, position: position)
@@ -176,7 +176,7 @@ public extension BaseWrapper where BaseType: UIView {
     @discardableResult
     func showOnlyError(_ text: String? = nil, detailText: String? = nil,
                        attributedText: NSAttributedString? = nil, attributedDetailText: NSAttributedString? = nil,
-                       style: DVTTipsStyle = DVTTipsStyle(timeout: DVTTips.defaultTimeOut), position: DVTTipsPosition = .center) -> DVTTipsView {
+                       style: DVTUITipsStyle = DVTUITipsStyle(timeout: DVTUITips.defaultTimeOut), position: DVTUITipsPosition = .center) -> DVTUITipsView {
         return self.showOnly(text, detailText: detailText,
                              attributedText: attributedText, attributedDetailText: attributedDetailText,
                              view: UIImageView(image: .image("error")), style: style, position: position)
@@ -185,7 +185,7 @@ public extension BaseWrapper where BaseType: UIView {
     @discardableResult
     func showOnlySuccess(_ text: String? = nil, detailText: String? = nil,
                          attributedText: NSAttributedString? = nil, attributedDetailText: NSAttributedString? = nil,
-                         style: DVTTipsStyle = DVTTipsStyle(timeout: DVTTips.defaultTimeOut), position: DVTTipsPosition = .center) -> DVTTipsView {
+                         style: DVTUITipsStyle = DVTUITipsStyle(timeout: DVTUITips.defaultTimeOut), position: DVTUITipsPosition = .center) -> DVTUITipsView {
         return self.showOnly(text, detailText: detailText,
                              attributedText: attributedText, attributedDetailText: attributedDetailText,
                              view: UIImageView(image: .image("done")), style: style, position: position)

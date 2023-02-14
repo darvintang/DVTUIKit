@@ -1,6 +1,6 @@
 //
 //  CGRect.swift
-//  DVTUIKit
+//  DVTUIKit_Extension
 //
 //  Created by darvin on 2022/8/6.
 //
@@ -9,7 +9,7 @@
 
  MIT License
 
- Copyright (c) 2022 darvin http://blog.tcoding.cn
+ Copyright (c) 2023 darvin http://blog.tcoding.cn
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -64,16 +64,17 @@ public extension BaseWrapper where BaseType == CGRect {
 
     /// 边界转换
     /// - Parameters:
-    ///   - from: 参考
+    ///   - canvasSize: 参考画布大小，逻辑像素
+    ///   - canvasScale: 参考画布大小比例
     ///   - to: 置入
     ///   - mode: 内容模式
     /// - Returns: 结果
-    func into(from: CGSize, fromScale: CGFloat, to: CGRect, mode: UIView.ContentMode) -> CGRect {
+    func into(canvasSize: CGSize, canvasScale: CGFloat = 1, to: CGRect, mode: UIView.ContentMode = .scaleAspectFill) -> CGRect {
         let showSize = to.size
-        let oldSize = from
+        let oldSize = canvasSize
 
         let rect = self.base
-        var scale: CGFloat = 1 / fromScale
+        var scale: CGFloat = 1 / canvasScale
         var offsetX: CGFloat = (showSize.width - oldSize.width * scale) / 2
         var offsetY: CGFloat = (showSize.height - oldSize.height * scale) / 2
 
@@ -122,5 +123,32 @@ public extension BaseWrapper where BaseType == CGRect {
         }
 
         return rect.dvt.to(rate: scale).offsetBy(dx: offsetX, dy: offsetY)
+    }
+
+    func inset(_ insets: UIEdgeInsets) -> CGRect {
+        var rect = self.base
+        rect.origin.x += insets.left
+        rect.origin.y += insets.top
+        rect.size.width -= (insets.left + insets.right)
+        rect.size.height -= (insets.top + insets.bottom)
+        return rect
+    }
+
+    func setHeight(_ height: CGFloat) -> CGRect {
+        var rect = self.base
+        if height < 0 {
+            return rect
+        }
+        rect.size.height = height.dvt.flat
+        return rect
+    }
+
+    func setWidth(_ width: CGFloat) -> CGRect {
+        var rect = self.base
+        if width < 0 {
+            return rect
+        }
+        rect.size.width = width.dvt.flat
+        return rect
     }
 }

@@ -1,11 +1,11 @@
 Pod::Spec.new do |s|
   s.name             = 'DVTUIKit'
-  s.version          = '2.1.0'
+  s.version          = '2.2.0'
   s.summary          = 'DVTUIKit'
 
   s.description      = <<-DESC
   TODO:
-    UIKit的一些扩展合集，提供了一些UI上的常用的接口
+    UIKit的一些扩展合集，提供了一些UI上的常用的接口；以及一些自定义封装的控件
   DESC
 
   s.homepage         = 'https://github.com/darvintang/DVTUIKit'
@@ -16,26 +16,40 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = '13.0'
 
   s.subspec 'Advanced' do |ss|
-    ss.subspec 'Public' do |sss|
-        sss.source_files = 'Sources/Advanced/Public/*.swift'
-    end
-    ss.subspec 'ProgressView' do |sss|
-        sss.source_files = 'Sources/Advanced/ProgressView/*.swift'
-        sss.resources = 'Sources/Advanced/ProgressView/*.{xcassets,xib}'
-        sss.dependency "DVTUIKit/Extension"
-        sss.dependency "DVTUIKit/Advanced/Public"
-    end
-    ss.subspec 'Collection' do |sss|
-        sss.source_files = 'Sources/Advanced/Collection/*.swift'
-        sss.dependency "DVTUIKit/Extension"
-    end
     ss.subspec 'Button' do |sss|
-        sss.source_files = 'Sources/Advanced/Button/*.swift'
-        sss.dependency "DVTUIKit/Extension"
+      sss.source_files = 'Sources/Advanced/Button/**.swift'
+      sss.dependency "DVTUIKit/Extension"
     end
+
+    ss.subspec 'Collection' do |sss|
+      sss.source_files = 'Sources/Advanced/Collection/**.swift'
+      sss.dependency "DVTUIKit/Extension"
+    end
+    ss.subspec 'Label' do |sss|
+      sss.source_files = 'Sources/Advanced/Label/**.swift'
+      sss.dependency "DVTUIKit/Extension"
+    end
+
     ss.subspec 'Navigation' do |sss|
-        sss.source_files = 'Sources/Advanced/Navigation/*.swift'
-        sss.dependency "DVTUIKit/Extension"
+      sss.source_files = 'Sources/Advanced/Navigation/**.swift'
+      sss.dependency "DVTUIKit/Extension"
+    end
+
+    ss.subspec 'Progress' do |sss|
+      sss.source_files = 'Sources/Advanced/Progress/**.swift'
+      sss.resources = 'Sources/Advanced/Progress/**.{xcassets,xib}'
+      sss.dependency "DVTUIKit/Advanced/Public"
+    end
+
+    ss.subspec 'Public' do |sss|
+      sss.source_files = 'Sources/Advanced/Public/**.swift'
+      sss.dependency "DVTUIKit/Extension"
+    end
+
+    ss.subspec 'Tips' do |sss|
+      sss.source_files = 'Sources/Advanced/Tips/**.swift'
+      sss.resources = 'Sources/Advanced/Tips/**.{xcassets,xib}'
+      sss.dependency "DVTUIKit/Advanced/Public"
     end
   end
 
@@ -44,6 +58,8 @@ Pod::Spec.new do |s|
     ss.dependency 'DVTFoundation', '~> 2.0.6'
     ss.dependency 'DVTLoger'
   end
+
+  s.source_files = 'Sources/**.swift'
 
   s.swift_version = '5'
   s.requires_arc  = true

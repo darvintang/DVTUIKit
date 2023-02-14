@@ -1,6 +1,6 @@
 //
-//  UIView.swift
-//  DVTUIKit
+//  UIView+Base.swift
+//  DVTUIKit_Extension
 //
 //  Created by darvin on 2021/10/11.
 //
@@ -9,7 +9,7 @@
 
  MIT License
 
- Copyright (c) 2022 darvin http://blog.tcoding.cn
+ Copyright (c) 2023 darvin http://blog.tcoding.cn
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -88,63 +88,36 @@ public extension BaseWrapper where BaseType: UIView {
     /// - Parameters:
     ///   - corners: 指定的圆角
     ///   - radius: 圆角的大小
-    func addCorner(corners: UIRectCorner, radius: CGFloat) {
-        let maskPath = UIBezierPath(roundedRect: self.base.bounds, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
-        let maskLayer = CAShapeLayer()
-        maskLayer.frame = self.base.bounds
-        maskLayer.path = maskPath.cgPath
-        self.base.layer.mask = maskLayer
-    }
-}
-
-private extension UIView {
-    static var ClickBlockKey: Int8 = 0
-
-    var clickBlock: (() -> Void)? {
-        set {
-            objc_setAssociatedObject(self, &Self.ClickBlockKey, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+    func add(corners: UIRectCorner, radius: CGFloat) {
+        var maskedCorners: CACornerMask = []
+        if corners.contains(.topLeft) {
+            maskedCorners.insert(.layerMinXMinYCorner)
         }
-        get {
-            if let block = objc_getAssociatedObject(self, &Self.ClickBlockKey) {
-                return block as? () -> Void
-            }
-            return nil
+        if corners.contains(.topRight) {
+            maskedCorners.insert(.layerMaxXMinYCorner)
         }
+        if corners.contains(.bottomLeft) {
+            maskedCorners.insert(.layerMinXMaxYCorner)
+        }
+        if corners.contains(.bottomRight) {
+            maskedCorners.insert(.layerMaxXMaxYCorner)
+        }
+        if corners == .allCorners {
+            maskedCorners = [.layerMaxXMaxYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMinXMinYCorner]
+        }
+        self.add(corners: maskedCorners, radius: radius)
     }
 
-    @objc func didClickSelf() {
-        self.clickBlock?()
-    }
-}
-
-public extension BaseWrapper where BaseType: UIView {
-    @available(*, deprecated, renamed: "addTapGesture(_:touchs:block:)", message: "2.0.1版本之后弃用该方法")
-    func addTap(_ taps: Int = 1, touchs: Int = 1, block clickBlock: @escaping (BaseType) -> Void) {
-        self.addTapGesture(taps, touchs: touchs, block: clickBlock)
-    }
-}
-
-public extension BaseWrapper where BaseType: UIView {
-    /// 给视图添加点击手势
+    /// 添加指定圆角
+    ///
+    /// 注意，该方法请在视图大小确定后调用，不然会出故障
+    ///
     /// - Parameters:
-    ///   - taps: 点击次数
-    ///   - touchs: 触摸点数
-    ///   - clickBlock: 执行的闭包
-    func addTapGesture(_ taps: Int = 1, touchs: Int = 1, block clickBlock: @escaping (BaseType) -> Void) {
-        if self.base is UIButton {
-            assert(false, "不能给\(self.base.classForCoder)添加点击事件")
-            return
-        }
-        self.base.isUserInteractionEnabled = true
-        let view = self.base
-        self.base.clickBlock = {
-            clickBlock(view)
-        }
-        let tap = UITapGestureRecognizer()
-        tap.numberOfTapsRequired = taps
-        tap.numberOfTouchesRequired = touchs
-        tap.addTarget(self.base, action: #selector(self.base.didClickSelf))
-        self.base.addGestureRecognizer(tap)
+    ///   - corners: 指定的圆角
+    ///   - radius: 圆角的大小
+    func add(corners: CACornerMask, radius: CGFloat) {
+        self.base.layer.maskedCorners = corners
+        self.base.layer.cornerRadius = radius
     }
 }
 

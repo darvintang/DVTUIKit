@@ -1,6 +1,6 @@
 //
 //  Bool.swift
-//  DVTUIKit
+//  DVTUIKit_Extension
 //
 //  Created by darvin on 2020/12/24.
 //
@@ -9,7 +9,7 @@
 
  MIT License
 
- Copyright (c) 2022 darvin http://blog.tcoding.cn
+ Copyright (c) 2023 darvin http://blog.tcoding.cn
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -43,28 +43,15 @@ public extension BaseWrapper where BaseType == Bool {
         return OperationQueue.current?.underlyingQueue?.label == DispatchQueue.main.label
     }
 
-    /// 判断是否是4寸屏iPhone，逻辑像素(320*568)
-    static var isIphone5: Bool {
-        let size = CGSize.dvt.screenSize
-        return size.equalTo(CGSize(width: 320, height: 568)) || size.equalTo(CGSize(width: 568, height: 320))
-    }
-
-    /// 判断是否是4寸屏iPhone，逻辑像素(320*568)
-    static var isIphone: Bool {
-        let size = CGSize.dvt.screenSize
-        return size.equalTo(CGSize(width: 375, height: 667)) || size.equalTo(CGSize(width: 667, height: 375))
-    }
-
-    /// 5.5寸Puls大屏
-    static var isIphonePuls: Bool {
-        let size = CGSize.dvt.screenSize
-        return size.equalTo(CGSize(width: 414, height: 736)) || size.equalTo(CGSize(width: 736, height: 414))
-    }
-
-    /// 刘海屏
-    @available(iOS 11.0, *)
+    /// 刘海屏、灵动岛
     static var isAlienScreen: Bool {
         (UIApplication.dvt.activeWindow?.safeAreaInsets.bottom ?? 0) > 0
+    }
+
+    /// iPhone14Pro/ProMax的灵动岛，只有竖屏才会使用
+    @available(iOS 16.0, *)
+    static var useDynamicIsland: Bool {
+        CGFloat.dvt.statusHeight == 54
     }
 
     static var isLandscape: Bool {
@@ -72,4 +59,3 @@ public extension BaseWrapper where BaseType == Bool {
         return orientation == .landscapeLeft || orientation == .landscapeRight
     }
 }
-

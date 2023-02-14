@@ -1,6 +1,6 @@
 //
-//  DVTTipsView.swift
-//  DVTUIKitTips
+//  DVTUITipsView.swift
+//  DVTUIKit_Tips
 //
 //  Created by darvin on 2023/2/1.
 //
@@ -31,31 +31,31 @@
 
  */
 
-import UIKit
 import DVTFoundation
+import UIKit
 
-#if canImport(DVTUIKitPublic)
-    import DVTUIKitExtension
-    import DVTUIKitPublic
+#if canImport(DVTUIKit_Public)
+    import DVTUIKit_Extension
+    import DVTUIKit_Public
 #endif
 
-public enum DVTTipsPosition {
+public enum DVTUITipsPosition {
     case top, center, bottom
 }
 
-public enum DVTTipsAnimationType {
+public enum DVTUITipsAnimationType {
     case fade, zoom, slide
 }
 
-/// 动画协议，可以自行实现，然后修改DVTTipsStyle.tipsAnimation
-public protocol DVTTipsAnimationDelegate {
+/// 动画协议，可以自行实现，然后修改DVTUITipsStyle.tipsAnimation
+public protocol DVTUITipsAnimationDelegate {
     func show(_ views: [UIView], completion: @escaping (_ finished: Bool) -> Void)
     func hide(_ views: [UIView], completion: @escaping (_ finished: Bool) -> Void)
 }
 
-public class DVTTipsStyle {
-    private static let _default = DVTTipsStyle(true)
-    public static var `default`: DVTTipsStyle {
+public class DVTUITipsStyle {
+    private static let _default = DVTUITipsStyle(true)
+    public static var `default`: DVTUITipsStyle {
         _default
     }
 
@@ -65,7 +65,7 @@ public class DVTTipsStyle {
     public init(backgroundColor: UIColor? = nil, tintColor: UIColor? = nil,
                 textFont: UIFont? = nil, detailTextFont: UIFont? = nil,
                 timeout: TimeInterval? = nil, paddingInsets: UIEdgeInsets? = nil,
-                marginInsets: UIEdgeInsets? = nil, tipsAnimation: DVTTipsAnimationDelegate? = nil) {
+                marginInsets: UIEdgeInsets? = nil, tipsAnimation: DVTUITipsAnimationDelegate? = nil) {
         self.backgroundColor = backgroundColor ?? Self.default.backgroundColor
         self.tintColor = tintColor ?? Self.default.tintColor
         self.textFont = textFont ?? Self.default.textFont
@@ -91,19 +91,19 @@ public class DVTTipsStyle {
     /// 内容外部间距
     public var marginInsets = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
     /// 如果使用自定义动画修改该属性
-    public var tipsAnimation: DVTTipsAnimationDelegate = DVTTipsAnimation()
+    public var tipsAnimation: DVTUITipsAnimationDelegate = DVTUITipsAnimation()
 }
 
 // MARK: - fileprivate
 
-fileprivate class DVTTipsContentView: DVTUIView {
+fileprivate class DVTUITipsContentView: DVTUIView {
     var text: String?
     var attributedText: NSAttributedString?
     var detailText: String?
     var attributedDetailText: NSAttributedString?
 
     var view: UIView?
-    var style: DVTTipsStyle = .default
+    var style: DVTUITipsStyle = .default
 
     private lazy var textLabel: UILabel = {
         let textLabel = UILabel()
@@ -256,8 +256,8 @@ fileprivate class DVTTipsContentView: DVTUIView {
     }
 }
 
-fileprivate class DVTTipsAnimation: NSObject {
-    var type: DVTTipsAnimationType = .fade
+fileprivate class DVTUITipsAnimation: NSObject {
+    var type: DVTUITipsAnimationType = .fade
 
     private var views: [UIView]?
     private var animationCompletion: ((_ finished: Bool) -> Void)?
@@ -378,7 +378,7 @@ fileprivate class DVTTipsAnimation: NSObject {
     }
 }
 
-extension DVTTipsAnimation: CAAnimationDelegate, DVTTipsAnimationDelegate {
+extension DVTUITipsAnimation: CAAnimationDelegate, DVTUITipsAnimationDelegate {
     func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
         self.animationCompletion?(flag)
     }
@@ -410,15 +410,15 @@ extension DVTTipsAnimation: CAAnimationDelegate, DVTTipsAnimationDelegate {
     }
 }
 
-// MARK: - DVTTipsView
+// MARK: - DVTUITipsView
 
 /// 提示的控件，请不要在它出现后强引用它
-public class DVTTipsView: DVTUIView {
+public class DVTUITipsView: DVTUIView {
     public var uuid: String
-    fileprivate static var allTips: [DVTTipsView] = []
+    fileprivate static var allTips: [DVTUITipsView] = []
 
-    fileprivate lazy var contentView: DVTTipsContentView = {
-        let contentView = DVTTipsContentView()
+    fileprivate lazy var contentView: DVTUITipsContentView = {
+        let contentView = DVTUITipsContentView()
         contentView.translatesAutoresizingMaskIntoConstraints = false
         return contentView
     }()
@@ -427,7 +427,7 @@ public class DVTTipsView: DVTUIView {
         UIButton(type: .custom)
     }()
 
-    fileprivate var tipsAnimation: DVTTipsAnimationDelegate?
+    fileprivate var tipsAnimation: DVTUITipsAnimationDelegate?
 
     fileprivate var timer: GCDTimer?
     fileprivate var timeout: TimeInterval?
@@ -457,16 +457,21 @@ public class DVTTipsView: DVTUIView {
         }
     }
 
-    var position: DVTTipsPosition = .center {
+    public var position: DVTUITipsPosition = .center {
         didSet {
             self.updateContentPosition()
         }
     }
 
+    public var offset: CGPoint = .zero {
+        didSet {
+        }
+    }
+
     public init(_ text: String? = nil, detailText: String? = nil,
                 attributedText: NSAttributedString? = nil, attributedDetailText: NSAttributedString? = nil,
-                view: UIView? = nil, style: DVTTipsStyle = DVTTipsStyle.default,
-                position: DVTTipsPosition = .center) {
+                view: UIView? = nil, style: DVTUITipsStyle = DVTUITipsStyle.default,
+                position: DVTUITipsPosition = .center) {
         self.timeout = style.timeout
         self.marginInsets = style.marginInsets
         self.position = position
@@ -483,6 +488,17 @@ public class DVTTipsView: DVTUIView {
         self.contentView.view = view
         self.contentView.style = style
         self.contentView.updateSubviews()
+
+        DVTKeyboardManager.default.addDidHideMonitor(self) { [weak self] info in
+            UIView.animate(withDuration: info.animationDuration) {
+                self?.updateContentPosition()
+            }
+        }
+        DVTKeyboardManager.default.addDidShowMonitor(self) { [weak self] info in
+            UIView.animate(withDuration: info.animationDuration) {
+                self?.updateContentPosition()
+            }
+        }
     }
 
     override public func didInitialize() {
@@ -517,6 +533,7 @@ public class DVTTipsView: DVTUIView {
     override public func layoutSubviews() {
         self.contentView.dvt.addConstraint(self) { make in
             make.attribute = .centerX
+            make.constant = self.offset.x
         }
 
         self.contentView.dvt.addConstraint(self) { make in
@@ -541,15 +558,16 @@ public class DVTTipsView: DVTUIView {
             switch self.position {
                 case .top:
                     make.attribute = .top
-                    make.constant = self.marginInsets.top + (self.superview?.safeAreaInsets.top ?? 0)
+                    make.constant = self.marginInsets.top + (self.superview?.safeAreaInsets.top ?? 0) + self.offset.y
                 case .center:
                     make.attribute = .centerY
+                    make.constant = self.offset.y
                     if DVTKeyboardManager.default.isVisible {
-                        make.constant = -(DVTKeyboardManager.default.info?.height ?? 0) / 2
+                        make.constant = -(DVTKeyboardManager.default.info?.height ?? 0) / 2 + self.offset.y
                     }
                 case .bottom:
                     make.attribute = .bottom
-                    make.constant = -self.marginInsets.bottom - (self.superview?.safeAreaInsets.bottom ?? 0)
+                    make.constant = -self.marginInsets.bottom - (self.superview?.safeAreaInsets.bottom ?? 0) + self.offset.y
             }
         })
         if self.position != .bottom {
@@ -574,15 +592,15 @@ public class DVTTipsView: DVTUIView {
 
     public fileprivate(set) var isAnimating = false
 
-    fileprivate static var _allTipsViews: [DVTWeakObjectContainer<DVTTipsView>] = []
+    fileprivate static var _allTipsViews: [DVTWeakObjectContainer<DVTUITipsView>] = []
 
     deinit {
         Self._allTipsViews.removeAll(where: { $0 == self })
     }
 }
 
-public extension DVTTipsView {
-    static var allTipsViews: [DVTTipsView] {
+public extension DVTUITipsView {
+    static var allTipsViews: [DVTUITipsView] {
         _allTipsViews.compactMap({ $0.object })
     }
 
@@ -637,21 +655,21 @@ public extension DVTTipsView {
 /// 为了防止在添加TipsView之后被新的视图覆盖，所以hook了UIView的添加和移动子视图的方法
 /// 确保TipsView总是保持在最上层，如果有多个，按照添加的时间顺序处理
 fileprivate extension UIView {
-    static var UIView_DVTTips_Swizzleed = false
+    static var UIView_DVTUITips_Swizzleed = false
     static func swizzleed() {
-        if self.UIView_DVTTips_Swizzleed {
+        if self.UIView_DVTUITips_Swizzleed {
             return
         }
         self.swizzleSelector(#selector(addSubview(_:)), swizzle: #selector(dvt_tips_addSubview(_:)))
         self.swizzleSelector(#selector(bringSubviewToFront(_:)), swizzle: #selector(dvt_tips_bringSubviewToFront(_:)))
-        self.UIView_DVTTips_Swizzleed = true
+        self.UIView_DVTUITips_Swizzleed = true
     }
 
     @objc func dvt_tips_addSubview(_ view: UIView) {
-        if view.isMember(of: DVTTipsView.self) {
+        if view.isMember(of: DVTUITipsView.self) {
             self.dvt_tips_addSubview(view)
         } else {
-            let tipsViews = self.subviews.filter({ $0.isMember(of: DVTTipsView.self) })
+            let tipsViews = self.subviews.filter({ $0.isMember(of: DVTUITipsView.self) })
             if let tipsView = tipsViews.first {
                 self.insertSubview(view, aboveSubview: tipsView)
             } else {
@@ -664,10 +682,10 @@ fileprivate extension UIView {
         if !self.subviews.contains(view) {
             return
         }
-        if view.isMember(of: DVTTipsView.self) {
+        if view.isMember(of: DVTUITipsView.self) {
             self.dvt_tips_bringSubviewToFront(view)
         } else {
-            let tipsViews = self.subviews.filter({ $0.isMember(of: DVTTipsView.self) })
+            let tipsViews = self.subviews.filter({ $0.isMember(of: DVTUITipsView.self) })
             if let tipsView = tipsViews.first {
                 self.insertSubview(view, aboveSubview: tipsView)
             } else {

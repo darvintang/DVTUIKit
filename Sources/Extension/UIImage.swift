@@ -51,9 +51,12 @@ public extension BaseWrapper where BaseType: UIImage {
     /// 图片绘制圆角
     /// - Parameters:
     ///   - corner: 圆角位置
-    ///   - radius: 圆角半径
+    ///   - radius: 圆角半径，会忽略小于1的圆角
     /// - Returns: 绘制后的图片
     func image(corner: UIRectCorner = .allCorners, cornerRadii radius: CGFloat) -> UIImage? {
+        if radius < 1 || corner.isEmpty {
+            return self.base
+        }
         UIGraphicsBeginImageContextWithOptions(self.base.size, false, self.base.scale)
         defer {
             UIGraphicsEndImageContext()
@@ -77,10 +80,14 @@ public extension BaseWrapper where BaseType: UIImage {
     /// 修改图片的宽度，等比修改高度
     /// - Parameter width: 新的宽度
     /// - Returns: 修改后的图片
-    func image(width: CGFloat) -> UIImage? {
+    func image(width: CGFloat, scale: CGFloat = 0) -> UIImage? {
+        let newScale = max(scale, self.base.scale)
+        if width == self.base.size.width, newScale == self.base.scale {
+            return self.base
+        }
         let height = self.base.size.height / self.base.size.width * width
         let newSize = CGSize(width: width, height: height)
-        UIGraphicsBeginImageContextWithOptions(newSize, false, self.base.scale)
+        UIGraphicsBeginImageContextWithOptions(newSize, false, newScale)
         self.base.draw(in: CGRect(origin: .zero, size: newSize))
         let newImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
@@ -93,6 +100,14 @@ public extension BaseWrapper where BaseType: UIImage {
     /// - Returns: 修改后的图片
     func image(rate scale: CGFloat) -> UIImage? {
         self.image(width: self.base.size.width * scale)
+    }
+
+    /// 修改图片的倍率，三倍图
+    /// - Parameters:
+    ///   - scale: 倍率
+    /// - Returns: 修改后的图片
+    func image(scale: CGFloat) -> UIImage? {
+        self.image(width: self.base.size.width / scale * self.base.scale, scale: scale)
     }
 
     /// 旋转图片

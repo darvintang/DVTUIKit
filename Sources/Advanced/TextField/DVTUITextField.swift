@@ -187,9 +187,9 @@ open class DVTUITextField: UITextField {
     }
 
     /// 最大长度，表情占两个单位长度(NSString)
-    public var maximumLength: Int = .max
+    @IBInspectable public var maximumLength: Int = .max
     /// 占位字符颜色
-    public var placeholderColor: UIColor? {
+    @IBInspectable public var placeholderColor: UIColor? {
         didSet {
             if oldValue != self.placeholderColor {
                 self.updatePlaceholder()

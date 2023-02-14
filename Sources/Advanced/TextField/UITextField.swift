@@ -39,12 +39,16 @@ import UIKit
 #endif
 
 public extension BaseWrapper where BaseType: UITextField {
-    func setClearButtonImage(_ image: UIImage?, for state: UIControl.State = .normal) {
-        if let btn = self.base.dvt.value(forKey: "clearButton") as? UIButton {
-            self.base.dvt.setValue(UIColor.red, forKey: "_placeholderColor")
-
-            btn.setImage(image, for: state)
+    var clearButton: UIButton? {
+        var btn: UIButton?
+        NSException.dvt.ignoreHandler {
+            btn = self.base.dvt.value(forKey: "clearButton") as? UIButton
         }
+        return btn
+    }
+
+    func setClearButtonImage(_ image: UIImage?, for state: UIControl.State = .normal) {
+        self.clearButton?.setImage(image, for: state)
     }
 
     func convertUITextRange(from range: NSRange) -> UITextRange? {

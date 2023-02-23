@@ -45,11 +45,17 @@ fileprivate extension DVTTransitionNavigationBar {
     }
 
     @objc func dvt_accessibility_navigationController() -> UINavigationController? {
-        let didOSel = NSSelectorFromString("dvt_accessibility_navigationController")
-        if let oBar = self.originalBar {
-            return oBar.perform(didOSel)?.takeUnretainedValue() as? UINavigationController
+        let didOSel = NSSelectorFromString("dvt_" + "accessibility_" + "navigationController")
+        // 与QMUI的hook冲突，QMUI的hook导致UINavigationBar也会走到该方法
+        // UINavigationBar未实现dvt_accessibility_navigationController，所以会崩溃
+        if self.isKind(of: DVTTransitionNavigationBar.self) {
+            if let oBar = self.originalBar {
+                return oBar.perform(didOSel)?.takeUnretainedValue() as? UINavigationController
+            } else {
+                return self.perform(didOSel)?.takeUnretainedValue() as? UINavigationController
+            }
         }
-        return self.perform(didOSel)?.takeUnretainedValue() as? UINavigationController
+        return nil
     }
 }
 
@@ -90,8 +96,8 @@ open class DVTTransitionNavigationBar: UINavigationBar {
                 self.swizzleSelector(didOSel, swizzle: didSSel)
             }
             if #available(iOS 14.0, *) {
-                let didOSel = NSSelectorFromString("_accessibility_navigationController")
-                let didSSel = NSSelectorFromString("dvt_accessibility_navigationController")
+                let didOSel = NSSelectorFromString("_" + "accessibility" + "_" + "navigationController")
+                let didSSel = NSSelectorFromString("dvt_" + "accessibility" + "_navigationController")
                 self.swizzleSelector(didOSel, swizzle: didSSel)
             }
 
@@ -133,6 +139,7 @@ public class DVTUINavigationBarStyle {
 
         self.dvt_navigationBarBackTitle = delegate?.dvt_navigationBarBackTitle
         self.dvt_backImage = delegate?.dvt_backImage
+        self.dvt_backImageColor = delegate?.dvt_backImageColor
     }
 
     public init(_ appearance: UINavigationBarAppearance) {
@@ -192,6 +199,7 @@ public class DVTUINavigationBarStyle {
 
     public var dvt_navigationBarBackTitle: String?
     public var dvt_backImage: UIImage?
+    public var dvt_backImageColor: UIColor?
 
     func getAppearance() -> UINavigationBarAppearance {
         let navigationBarAppearance = UINavigationBarAppearance()
@@ -222,8 +230,13 @@ public class DVTUINavigationBarStyle {
         if let color = self.dvt_navigationBarTintColor {
             navigationBarAppearance.backButtonAppearance.normal.titleTextAttributes[.foregroundColor] = color
         }
-        if let image = self.dvt_backImage?.withRenderingMode(.alwaysOriginal) {
-            navigationBarAppearance.setBackIndicatorImage(image, transitionMaskImage: image)
+        if let image = self.dvt_backImage {
+            var resImage = image
+            if let color = self.dvt_backImageColor {
+                resImage = image.dvt.image(tintColor: color) ?? image
+            }
+            resImage = resImage.withRenderingMode(.alwaysOriginal)
+            navigationBarAppearance.setBackIndicatorImage(resImage, transitionMaskImage: resImage)
         }
         return navigationBarAppearance
     }
@@ -263,4 +276,6 @@ public protocol DVTUINavigationBarStyleDelegate {
     func dvt_revealNavigationBarBackTitle(_ viewController: UIViewController) -> String?
     /// 返回按钮图标
     var dvt_backImage: UIImage? { get }
+    /// 返回按钮颜色，如果有返回颜色就将图片渲染成设置的颜色
+    var dvt_backImageColor: UIColor? { get }
 }

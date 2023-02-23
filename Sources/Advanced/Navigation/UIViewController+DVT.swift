@@ -57,6 +57,7 @@ public extension DVTUINavigationBarStyleDelegate {
     func dvt_revealNavigationBarBackTitle(_ viewController: UIViewController) -> String? { nil }
 
     var dvt_backImage: UIImage? { DVTUINavigationBarStyle.default.dvt_backImage }
+    var dvt_backImageColor: UIColor? { DVTUINavigationBarStyle.default.dvt_backImageColor }
 }
 
 extension BaseWrapper where BaseType == UIViewController {

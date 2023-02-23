@@ -131,11 +131,11 @@ private class DVTUINavigationControllerGestureDelegateContainer: NSObject, UIGes
 }
 
 public protocol DVTUINavigationControllerPopAndBackButtonHandlerDelegate {
-    func shouldPopViewController(by popGesture: Bool) -> Bool
+    func dvt_shouldPopViewController(by popGesture: Bool) -> Bool
 }
 
 public extension DVTUINavigationControllerPopAndBackButtonHandlerDelegate {
-    func shouldPopViewController(by popGesture: Bool) -> Bool { true }
+    func dvt_shouldPopViewController(by popGesture: Bool) -> Bool { true }
 }
 
 public typealias DVTUINavigationControllerDelegate = DVTUINavigationControllerPopAndBackButtonHandlerDelegate & DVTUINavigationBarStyleDelegate
@@ -260,7 +260,7 @@ open class DVTUINavigationController: UINavigationController, UIGestureRecognize
     /// - Returns: 是否允许
     fileprivate func canPop(_ viewController: UIViewController?, by PopGesture: Bool) -> Bool {
         if let delegate = viewController as? DVTUINavigationControllerPopAndBackButtonHandlerDelegate {
-            return delegate.shouldPopViewController(by: PopGesture)
+            return delegate.dvt_shouldPopViewController(by: PopGesture)
         }
         return true
     }
@@ -399,6 +399,7 @@ open class DVTUINavigationController: UINavigationController, UIGestureRecognize
         self.updateNavigationBarBackButtonTitle()
         self.actionState = .willPush
         super.pushViewController(viewController, animated: animated)
+        viewController.dvt.renderNavigationBarStyle(animated)
         self.actionState = .didPush
         self.dvt.animateAlongsideTransition { [weak self] _ in
             self?.actionState = .pushCompleted
@@ -480,6 +481,22 @@ open class DVTUINavigationController: UINavigationController, UIGestureRecognize
             }
         }
         return viewControllers
+    }
+
+    override open var shouldAutorotate: Bool {
+        self.topViewController?.shouldAutorotate ?? super.shouldAutorotate
+    }
+
+    override open var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        self.topViewController?.supportedInterfaceOrientations ?? super.supportedInterfaceOrientations
+    }
+
+    override open var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
+        self.topViewController?.preferredInterfaceOrientationForPresentation ?? super.preferredInterfaceOrientationForPresentation
+    }
+
+    override open var preferredStatusBarStyle: UIStatusBarStyle {
+        self.topViewController?.preferredStatusBarStyle ?? super.preferredStatusBarStyle
     }
 
     open func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {

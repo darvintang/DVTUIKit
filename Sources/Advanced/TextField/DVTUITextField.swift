@@ -45,7 +45,13 @@ public protocol DVTUITextFieldDelegate: UITextFieldDelegate {
     /// - Parameters:
     ///   - value: 是否已经处理
     /// - Returns: 是否允许在`range`改变为`string`
-    func textField(_ textField: DVTUITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String, original value: Bool) -> Bool
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String, original value: Bool) -> Bool
+}
+
+public extension DVTUITextFieldDelegate {
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String, original value: Bool) -> Bool {
+        value
+    }
 }
 
 fileprivate class DVTUITextFieldDelegater: NSObject, UITextFieldDelegate {
@@ -55,9 +61,9 @@ fileprivate class DVTUITextFieldDelegater: NSObject, UITextFieldDelegate {
         textField.addTarget(self, action: #selector(self.handleTextChangeEvent(_:)), for: .editingChanged)
     }
 
-    var textField: DVTUITextField
+    weak var textField: DVTUITextField?
     var delegater: DVTUITextFieldDelegate? {
-        self.textField.delegater
+        self.textField?.delegater
     }
 
     @objc func handleTextChangeEvent(_ textField: DVTUITextField) {
@@ -104,9 +110,9 @@ fileprivate class DVTUITextFieldDelegater: NSObject, UITextFieldDelegate {
                 // 如果 range 越界了，继续返回 YES 会造成 crash
                 // 这里的做法是本次返回 NO，并将越界的 range 缩减到没有越界的范围，再手动做该范围的替换。
                 let tRange = NSRange(location: range.location, length: range.length - (NSMaxRange(range) - text.dvt.nsCount))
-                if tRange.length > 0, let textRange = self.textField.dvt.convertUITextRange(from: tRange) {
-                    self.textField.replace(textRange, withText: string)
-                    self.textField.customTextDidChangeEvent()
+                if tRange.length > 0, let textRange = self.textField?.dvt.convertUITextRange(from: tRange) {
+                    self.textField?.replace(textRange, withText: string)
+                    self.textField?.customTextDidChangeEvent()
                 }
                 defaultReturn = false
             } else if string.count > 0, text.dvt.nsCount - range.length + string.dvt.nsCount > textField.maximumLength {
@@ -117,13 +123,14 @@ fileprivate class DVTUITextFieldDelegater: NSObject, UITextFieldDelegate {
                     let allowedText = string.dvt[0, length: substringLength]
                     textField.text = text.dvt.replacing(range.location, length: range.length, with: allowedText)
                     DispatchQueue.main.async {
-                        self.textField.dvt.selectedRange = NSRange(location: range.location + allowedText.dvt.nsCount, length: 0)
+                        self.textField?.dvt.selectedRange = NSRange(location: range.location + allowedText.dvt.nsCount, length: 0)
                     }
                 }
                 defaultReturn = false
             }
         }
-        return self.delegater?.textField(self.textField, shouldChangeCharactersIn: range, replacementString: string, original: defaultReturn) ?? defaultReturn
+
+        return self.delegater?.textField(self.textField ?? textField, shouldChangeCharactersIn: range, replacementString: string, original: defaultReturn) ?? defaultReturn
     }
 
     func textFieldDidChangeSelection(_ textField: UITextField) {
@@ -265,9 +272,5 @@ open class DVTUITextField: UITextField {
     }
 
     open func didInitialize() {
-    }
-
-    deinit {
-        self._delegater = nil
     }
 }

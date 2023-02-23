@@ -60,7 +60,7 @@ public extension DVTUINavigationBarStyleDelegate {
 }
 
 extension BaseWrapper where BaseType == UIViewController {
-    static func swizzleed() {
+    static func navigation_swizzleed() {
         if BaseType.UIViewController_DVT_Swizzleed {
             return
         }

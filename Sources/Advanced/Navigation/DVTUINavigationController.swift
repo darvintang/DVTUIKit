@@ -306,7 +306,7 @@ open class DVTUINavigationController: UINavigationController, UIGestureRecognize
     }
 
     open func didInitialize() {
-        UIViewController.dvt.swizzleed()
+        UIViewController.dvt.navigation_swizzleed()
         UIView.dvt.exchangeNavigationBarContentView()
     }
 

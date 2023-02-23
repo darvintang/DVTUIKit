@@ -151,4 +151,9 @@ public extension BaseWrapper where BaseType == CGRect {
         rect.size.width = width.dvt.flat
         return rect
     }
+
+    /// 基于当前设备的屏幕倍数，进行像素取整。
+    var flat: CGRect {
+        CGRect(x: self.x.dvt.flat, y: self.y.dvt.flat, width: self.base.width.dvt.flat, height: self.base.height.dvt.flat)
+    }
 }

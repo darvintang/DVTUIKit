@@ -109,9 +109,8 @@ fileprivate enum LocalPackage: String, ProductInfoProtocol {
              moreOperation, navigation, progress,
              `public`, textField, textView, tips
         var info: ProductInfo {
-            let prefixPath = "Sources/Advanced/"
+            let prefixPath = "Sources/Advanced"
             var dependencies: [Self] = []
-
             switch self {
                 case .progress, .tips, .emptyView:
                     dependencies.append(.public)
@@ -120,7 +119,7 @@ fileprivate enum LocalPackage: String, ProductInfoProtocol {
                 default:
                     break
             }
-            return ProductInfo(prefix: "DVTUIKit", name: self.uRawValue, path: prefixPath + self.uRawValue,
+            return ProductInfo(prefix: "DVTUIKit", name: self.uRawValue, path: prefixPath + "/" + self.uRawValue,
                                dependencies: dependencies.map({ $0.info }) + [LocalPackage.Extension.oneself.info])
         }
 

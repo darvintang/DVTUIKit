@@ -98,9 +98,9 @@ public extension BaseWrapper where BaseType == CGFloat {
         return (value / 375.0 * Swift.min(self.screenWidth, self.screenHeight)).dvt.flat
     }
 
-    /// 像素对其
+    /// 基于当前设备的屏幕倍数，进行像素取整。
     var flat: CGFloat {
-        if self.base == .greatestFiniteMagnitude {
+        if self.base == CGFLOAT_MIN {
             return 0
         }
         let scale = UIScreen.main.scale

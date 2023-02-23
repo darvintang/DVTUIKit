@@ -1,8 +1,8 @@
 //
-//  CALayer.swift
+//  UIEdgeInsets.swift
 //  DVTUIKit_Extension
 //
-//  Created by darvin on 2022/8/5.
+//  Created by darvin on 2023/2/17.
 //
 
 /*
@@ -34,24 +34,20 @@
 import DVTFoundation
 import UIKit
 
-extension CALayer: NameSpace {}
-public extension BaseWrapper where BaseType: CALayer {
-    var image: UIImage? {
-        UIGraphicsBeginImageContextWithOptions(self.base.bounds.size, self.base.isOpaque, UIScreen.main.scale)
-        defer {
-            UIGraphicsEndImageContext()
-        }
-        guard let context = UIGraphicsGetCurrentContext() else {
-            return nil
-        }
-        context.saveGState()
-        self.base.render(in: context)
-        let outImage = UIGraphicsGetImageFromCurrentImageContext()
-        context.restoreGState()
-        return outImage
+extension UIEdgeInsets: NameSpace { }
+
+public extension BaseWrapper where BaseType == UIEdgeInsets {
+    /// 获取UIEdgeInsets在垂直方向上的值
+    var vertical: CGFloat {
+        self.base.top + self.base.bottom
     }
 
-    var cgImage: CGImage? {
-        self.image?.cgImage
+    /// 获取UIEdgeInsets在水平方向上的值
+    var horizontal: CGFloat {
+        self.base.left + self.base.right
+    }
+
+    func insetsConcat(_ insets: UIEdgeInsets) -> UIEdgeInsets {
+        UIEdgeInsets(top: self.base.top + insets.top, left: self.base.left + insets.left, bottom: self.base.bottom + insets.bottom, right: self.base.right + insets.right)
     }
 }

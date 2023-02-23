@@ -64,14 +64,7 @@ public extension BaseWrapper where BaseType == UIColor {
     /// - Parameter alpha: 透明度
     /// - Returns: 新的颜色
     func alpha(_ alpha: CGFloat) -> UIColor {
-        if !self.isDynamic {
-            let ciColor = CIColor(cgColor: self.base.cgColor)
-            return UIColor(red: ciColor.red, green: ciColor.green, blue: ciColor.blue, alpha: alpha)
-        }
-        return UIColor.init { _ in
-            let ciColor = CIColor(cgColor: self.base.cgColor)
-            return UIColor(red: ciColor.red, green: ciColor.green, blue: ciColor.blue, alpha: alpha)
-        }
+        return self.base.withAlphaComponent(alpha)
     }
 
     /// 获取随机的颜色
@@ -81,6 +74,36 @@ public extension BaseWrapper where BaseType == UIColor {
         let blue = CGFloat(arc4random() % 256) / 255.0
         let color = UIColor(red: red, green: green, blue: blue, alpha: 1)
         return color
+    }
+
+    var rgbaValue: UInt64 {
+        let ciColor = CIColor(cgColor: self.base.cgColor)
+        return UInt64(ciColor.red * 255) << 24 + UInt64(ciColor.green * 255) << 16 + UInt64(ciColor.blue * 255) << 8 + UInt64(ciColor.alpha * 255)
+    }
+
+    /// 0xrgba
+    var rgbaString: String {
+        return "0x" + String(self.rgbaValue, radix: 16)
+    }
+
+    var red: CGFloat {
+        let ciColor = CIColor(cgColor: self.base.cgColor)
+        return ciColor.red
+    }
+
+    var green: CGFloat {
+        let ciColor = CIColor(cgColor: self.base.cgColor)
+        return ciColor.green
+    }
+
+    var blue: CGFloat {
+        let ciColor = CIColor(cgColor: self.base.cgColor)
+        return ciColor.blue
+    }
+
+    var alpha: CGFloat {
+        let ciColor = CIColor(cgColor: self.base.cgColor)
+        return ciColor.alpha
     }
 }
 

@@ -35,7 +35,19 @@ import DVTFoundation
 import ObjectiveC
 import UIKit
 
-extension UIView: NameSpace {}
+extension UIView: NameSpace {
+    static var UIView_dvt_viewControllerKey: UInt8 = 0
+    fileprivate var dvt_viewController: UIViewController? {
+        set {
+            let container = DVTWeakObjectContainer(object: newValue)
+            objc_setAssociatedObject(self, &Self.UIView_dvt_viewControllerKey, container, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        }
+        get {
+            (objc_getAssociatedObject(self, &Self.UIView_dvt_viewControllerKey) as? DVTWeakObjectContainer)?.object
+        }
+    }
+}
+
 public extension BaseWrapper where BaseType: UIView {
     var origin: CGPoint {
         set { self.base.frame = CGRect(origin: newValue, size: self.size) }
@@ -135,23 +147,9 @@ public extension BaseWrapper where BaseType: UIView {
 }
 
 public extension BaseWrapper where BaseType: UIView {
+    /// 视图截图
     var image: UIImage? {
         self.base.layer.dvt.image
-    }
-
-    var snapshotImage: UIImage? {
-        UIGraphicsBeginImageContextWithOptions(self.base.bounds.size, self.base.isOpaque, UIScreen.main.scale)
-        defer {
-            UIGraphicsEndImageContext()
-        }
-        guard let context = UIGraphicsGetCurrentContext() else {
-            return nil
-        }
-        context.saveGState()
-        self.base.drawHierarchy(in: self.base.bounds, afterScreenUpdates: true)
-        let outImage = UIGraphicsGetImageFromCurrentImageContext()
-        context.restoreGState()
-        return outImage
     }
 }
 
@@ -166,50 +164,88 @@ public extension BaseWrapper where BaseType: UIView {
     }
 }
 
-public extension BaseWrapper where BaseType: UIView {
-    private func print(_ exception: NSException) {
+fileprivate extension UIView {
+    func printNSException(_ exception: NSException) {
         var logerinfo = exception.name.rawValue
         let reason = exception.reason ?? ""
         if !reason.isEmpty {
             logerinfo += "<\(reason)>"
         }
-        dvtuiloger.error("使用 KVC 访问了 UIKit 的私有属性，触发了系统的 NSException: \(logerinfo)")
+        dvtuiloger.error("使用 KVC 访问了 \(self) 的私有属性，触发了系统的 NSException: \(logerinfo)")
     }
+}
 
+public extension BaseWrapper where BaseType: UIView {
     func value(forKey key: String) -> Any? {
         var res: Any?
-        NSException.dvt.ignoreHandler {
-            res = self.base.value(forKey: key)
-        } completion: { exception in
-            self.print(exception)
+        NSException.dvt.ignoreHandler { [weak base = self.base] in
+            res = base?.value(forKey: key)
+        } completion: { [weak base = self.base] exception in
+            base?.printNSException(exception)
         }
         return res
     }
 
     func setValue(_ value: Any?, forKey key: String) {
-        NSException.dvt.ignoreHandler {
-            self.base.setValue(value, forKey: key)
-        } completion: { exception in
-            self.print(exception)
+        NSException.dvt.ignoreHandler { [weak base = self.base] in
+            base?.setValue(value, forKey: key)
+        } completion: { [weak base = self.base] exception in
+            base?.printNSException(exception)
         }
     }
 
     func value(forKeyPath keyPath: String) -> Any? {
         var res: Any?
-        NSException.dvt.ignoreHandler {
-            res = self.base.value(forKeyPath: keyPath)
-        } completion: { exception in
-            self.print(exception)
+        NSException.dvt.ignoreHandler { [weak base = self.base] in
+            res = base?.value(forKeyPath: keyPath)
+        } completion: { [weak base = self.base] exception in
+            base?.printNSException(exception)
         }
         return res
     }
 
     func setValue(_ value: Any?, forKeyPath keyPath: String) {
-        NSException.dvt.ignoreHandler {
-            self.base.setValue(value, forKeyPath: keyPath)
-        } completion: { exception in
-            self.print(exception)
+        NSException.dvt.ignoreHandler { [weak base = self.base] in
+            base?.setValue(value, forKeyPath: keyPath)
+        } completion: { [weak base = self.base] exception in
+            base?.printNSException(exception)
         }
+    }
+}
+
+public extension BaseWrapper where BaseType: UIView {
+    var visible: Bool {
+        let view = self.base
+        if view.isHidden || view.alpha <= 0.01 {
+            return false
+        }
+
+        if view.window != nil {
+            return true
+        }
+        if let window = view as? UIWindow {
+            return window.windowScene != nil
+        }
+        return self.viewController?.dvt.visibleState.isVisible ?? false
+    }
+
+    var isControllerRootView: Bool {
+        self.viewController?.view == self.base
+    }
+
+    var viewController: UIViewController? {
+        if let vc = self.base.dvt_viewController {
+            return vc
+        }
+        var next = self.base.next
+        repeat {
+            if let vc = next as? UIViewController {
+                self.base.dvt_viewController = vc
+                return vc
+            }
+            next = next?.next
+        } while next != nil
+        return nil
     }
 }
 

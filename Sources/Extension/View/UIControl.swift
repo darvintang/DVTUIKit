@@ -52,8 +52,10 @@ private extension UIControl {
     }
 
     func addEvent(_ event: UIControl.Event, and clickBlock: @escaping (UIControl) -> Void) {
-        let target = UIControlEventTarget(self, for: event) {
-            clickBlock(self)
+        let target = UIControlEventTarget(self, for: event) { control in
+            if let Tcontrol = control {
+                clickBlock(Tcontrol)
+            }
         }
         self.addTarget(target, action: #selector(target.didClick), for: event)
 
@@ -67,18 +69,18 @@ private extension UIControl {
     }
 
     class UIControlEventTarget {
-        init(_ btn: UIControl, for event: UIControl.Event, and clickBlock: @escaping () -> Void) {
+        init(_ btn: UIControl, for event: UIControl.Event, and clickBlock: @escaping (_ control: UIControl?) -> Void) {
             self.btn = btn
             self.event = event
             self.clickBlock = clickBlock
         }
 
-        let btn: UIControl
+        weak var btn: UIControl?
         let event: UIControl.Event
-        let clickBlock: () -> Void
+        let clickBlock: (_ control: UIControl?) -> Void
 
         @objc func didClick() {
-            self.clickBlock()
+            self.clickBlock(self.btn)
         }
     }
 }

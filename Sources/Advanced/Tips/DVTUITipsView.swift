@@ -63,7 +63,7 @@ public class DVTUITipsStyle {
     }
 
     public init(backgroundColor: UIColor? = nil, tintColor: UIColor? = nil,
-                textFont: UIFont? = nil, detailTextFont: UIFont? = nil,
+                textFont: UIFont? = nil, detailTextFont: UIFont? = nil, offset: CGPoint? = nil,
                 timeout: TimeInterval? = nil, paddingInsets: UIEdgeInsets? = nil,
                 marginInsets: UIEdgeInsets? = nil, tipsAnimation: DVTUITipsAnimationDelegate? = nil) {
         self.backgroundColor = backgroundColor ?? Self.default.backgroundColor
@@ -74,6 +74,7 @@ public class DVTUITipsStyle {
         self.paddingInsets = paddingInsets ?? Self.default.paddingInsets
         self.marginInsets = marginInsets ?? Self.default.marginInsets
         self.tipsAnimation = tipsAnimation ?? Self.default.tipsAnimation
+        self.offset = offset ?? Self.default.offset
     }
 
     public var backgroundColor: UIColor = .black
@@ -92,6 +93,7 @@ public class DVTUITipsStyle {
     public var marginInsets = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
     /// 如果使用自定义动画修改该属性
     public var tipsAnimation: DVTUITipsAnimationDelegate = DVTUITipsAnimation()
+    public var offset: CGPoint = .zero
 }
 
 // MARK: - fileprivate
@@ -463,10 +465,7 @@ public class DVTUITipsView: DVTUIView {
         }
     }
 
-    public var offset: CGPoint = .zero {
-        didSet {
-        }
-    }
+    private var offset: CGPoint = .zero
 
     public init(_ text: String? = nil, detailText: String? = nil,
                 attributedText: NSAttributedString? = nil, attributedDetailText: NSAttributedString? = nil,
@@ -474,8 +473,9 @@ public class DVTUITipsView: DVTUIView {
                 position: DVTUITipsPosition = .center) {
         self.timeout = style.timeout
         self.marginInsets = style.marginInsets
-        self.position = position
+        self.offset = style.offset
         self.tipsAnimation = style.tipsAnimation
+        self.position = position
         self.uuid = UUID().uuidString
         super.init(frame: .zero)
 

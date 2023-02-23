@@ -1,8 +1,8 @@
 //
-//  DVTUIKit_ExtensionConfig.swift
+//  CALayer.swift
 //  DVTUIKit_Extension
 //
-//  Created by darvin on 2022/8/25.
+//  Created by darvin on 2022/8/5.
 //
 
 /*
@@ -31,28 +31,18 @@
 
  */
 
-import DVTLoger
+import DVTFoundation
 import UIKit
 
-public let dvtuiloger = {
-    let loger = Loger("DVTUIKit")
-    loger.toFileLevel = .off
-    #if !DEBUG
-        loger.toConsole = true
-    #endif
-    return loger
-}()
-
-public struct DVTUIKitConfig {
-    public static var logerLevel: Loger.Level = .all {
-        didSet {
-            dvtuiloger.logLevel = logerLevel
+extension CALayer: NameSpace {}
+public extension BaseWrapper where BaseType: CALayer {
+    var image: UIImage? {
+        return UIImage.dvt.image(self.base.bounds.size, isOpaque: false) { contextRef in
+            self.base.render(in: contextRef)
         }
     }
 
-    /// 需要提前hook的功能在这个函数里进行hook
-    /// 例如获取UIViewController的状态，必须hook它的生命周期函数才能获取，如果等使用的时候再hook，第一次的结果会不准确
-    public static func beginHook() {
-        UIViewController.dvt.extension_swizzleed()
+    var cgImage: CGImage? {
+        self.image?.cgImage
     }
 }

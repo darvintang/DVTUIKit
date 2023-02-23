@@ -43,8 +43,7 @@ import UIKit
 #endif
 
 fileprivate extension UIImage {
-    private static let bundleName = "DVTUIKit_DVTUIKitTips"
-
+    private static let bundleName = "DVTUIKit_DVTUIKit.Tips"
     static func image(_ named: String) -> UIImage? {
         let realName = "DVTUIKit_Tips_\(named)"
         // (main) OR (cocoapods default) OR (cocoapods Frameworks (generate_multiple_pod_projects)) OR (Bundle SPM)

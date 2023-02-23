@@ -40,11 +40,7 @@ import UIKit
 
 public extension BaseWrapper where BaseType: UITextField {
     var clearButton: UIButton? {
-        var btn: UIButton?
-        NSException.dvt.ignoreHandler {
-            btn = self.base.dvt.value(forKey: "clearButton") as? UIButton
-        }
-        return btn
+        return self.base.dvt.value(forKey: "clearButton") as? UIButton
     }
 
     func setClearButtonImage(_ image: UIImage?, for state: UIControl.State = .normal) {

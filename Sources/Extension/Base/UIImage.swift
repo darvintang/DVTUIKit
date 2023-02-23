@@ -226,6 +226,25 @@ public extension BaseWrapper where BaseType: UIImage {
 }
 
 public extension BaseWrapper where BaseType: UIImage {
+    var resizable: Bool {
+        self.base.perform(NSSelectorFromString("_isResizable")).takeUnretainedValue() as? Bool ?? false
+    }
+
+    var sizeInPixel: CGSize {
+        self.base.size.dvt.convert(self.base.scale)
+    }
+
+    var isOpaque: Bool {
+        if let alphaInfo = self.base.cgImage?.alphaInfo {
+            return alphaInfo == .noneSkipLast
+                || alphaInfo == .noneSkipFirst
+                || alphaInfo == .none
+        }
+        return false
+    }
+}
+
+public extension BaseWrapper where BaseType: UIImage {
     static func image(_ bundle: Bundle, named: String) -> BaseType? {
         BaseType(named: named, in: bundle, compatibleWith: .none)
     }
@@ -243,6 +262,139 @@ public extension BaseWrapper where BaseType: UIImage {
     }
 }
 
+public extension BaseWrapper where BaseType: UIImage {
+    static func image(_ size: CGSize, isOpaque: Bool = false, scale: CGFloat = UIScreen.main.scale, actions actionBlock: (_ contextRef: inout CGContext) -> Void) -> UIImage? {
+        if size.dvt.isEmpty {
+            return nil
+        }
+        defer {
+            UIGraphicsEndImageContext()
+        }
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = scale
+        format.opaque = isOpaque
+        let render = UIGraphicsImageRenderer(size: size, format: format)
+        return render.image(actions: { rendererContext in
+            var context = rendererContext.cgContext
+            context.saveGState()
+            actionBlock(&context)
+            context.restoreGState()
+        })
+    }
+
+    var averageColor: UIColor? {
+        guard let cgImage = self.base.cgImage else { return nil }
+        var rgba: [UInt8] = [0, 0, 0, 0]
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let context = CGContext(data: &rgba, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4, space: colorSpace, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue + CGBitmapInfo.byteOrder32Big.rawValue)
+        context?.draw(cgImage, in: CGRect(origin: .zero, size: CGSize(width: 1, height: 1)))
+
+        if rgba[3] > 0 {
+            return UIColor(red: CGFloat(rgba[0]) / CGFloat(rgba[3]), green: CGFloat(rgba[1]) / CGFloat(rgba[3]), blue: CGFloat(rgba[2]) / CGFloat(rgba[3]), alpha: CGFloat(rgba[3]) / 255)
+        } else {
+            return UIColor(red: CGFloat(rgba[0]) / 255, green: CGFloat(rgba[1]) / 255, blue: CGFloat(rgba[2]) / 255, alpha: CGFloat(rgba[3]) / 255)
+        }
+    }
+
+    /// 置灰后的图片
+    var gray: UIImage? {
+        guard let cgImage = self.base.cgImage else {
+            return nil
+        }
+        let size = self.sizeInPixel
+        let colorSpace = CGColorSpaceCreateDeviceGray()
+        let context = CGContext(data: nil, width: Int(size.width), height: Int(size.height), bitsPerComponent: 8, bytesPerRow: 0, space: colorSpace, bitmapInfo: CGBitmapInfo.byteOrderDefault.rawValue)
+        context?.draw(cgImage, in: CGRect(origin: .zero, size: size))
+        context?.makeImage()
+        var grayImage: UIImage?
+        guard let imageRef = context?.makeImage() else {
+            return nil
+        }
+        if self.isOpaque {
+            grayImage = UIImage(cgImage: imageRef, scale: self.base.scale, orientation: self.base.imageOrientation)
+        } else {
+            let alphaContext = CGContext(data: nil, width: Int(size.width), height: Int(size.height), bitsPerComponent: 8, bytesPerRow: 0, space: colorSpace, bitmapInfo: CGImageAlphaInfo.alphaOnly.rawValue)
+            alphaContext?.draw(cgImage, in: CGRect(origin: .zero, size: size))
+            if let mask = alphaContext?.makeImage(), let maskedGrayImageRef = imageRef.masking(mask) {
+                grayImage = UIImage(cgImage: maskedGrayImageRef, scale: self.base.scale, orientation: self.base.imageOrientation)
+                grayImage = Self.image(grayImage?.size ?? size, isOpaque: false, scale: grayImage?.scale ?? self.base.scale, actions: { _ in
+                    grayImage?.draw(in: CGRect(origin: .zero, size: grayImage?.size ?? size))
+                })
+            }
+        }
+        return grayImage
+    }
+
+    /// 获取一张修改透明度后的图片
+    /// - Parameter alpha: 透明度
+    /// - Returns: 设置了透明度之后的图片
+    func image(alpha: CGFloat) -> UIImage? {
+        Self.image(self.base.size, isOpaque: false, scale: self.base.scale) { _ in
+            self.base.draw(in: CGRect(origin: .zero, size: self.base.size), blendMode: .normal, alpha: alpha)
+        }
+    }
+
+    /// 使用指定的颜色去重新渲染它，生成一张新图片
+    /// - Parameter tintColor: 要用于渲染的新颜色
+    /// - Returns: 与当前图片形状一致但颜色与参数tintColor相同的新图片
+    func image(tintColor: UIColor) -> UIImage? {
+        guard let cgImage = self.base.cgImage else {
+            return nil
+        }
+        // 如果图片不透明但 tintColor 半透明，则生成的图片也应该是半透明的
+        let opaque = self.isOpaque ? tintColor.dvt.alpha >= 1.0 : false
+        let result = Self.image(self.base.size, isOpaque: opaque, scale: self.base.scale) { contextRef in
+            contextRef.translateBy(x: 0, y: self.base.size.height)
+            contextRef.scaleBy(x: 1, y: -1)
+            if !opaque {
+                contextRef.setBlendMode(.normal)
+                contextRef.clip(to: CGRect(origin: .zero, size: self.base.size), mask: cgImage)
+            }
+            contextRef.setFillColor(tintColor.cgColor)
+            contextRef.fill(CGRect(origin: .zero, size: self.base.size))
+        }
+        return result
+    }
+
+    /// 以 CIColorBlendMode 的模式为当前图片叠加一个颜色，生成一张新图片并返回，在叠加过程中会保留图片内的纹理。
+    ///
+    /// 这个方法可能比较慢，会卡住主线程，建议异步使用
+    ///
+    /// - Parameter blendColor: 要叠加的颜色
+    /// - Returns: 基于当前图片纹理保持不变的情况下颜色变为指定的叠加颜色的新图片
+    func image(blendColor: UIColor) -> UIImage? {
+        guard let cgImage = self.base.cgImage, let coloredCGImage = self.image(tintColor: blendColor)?.cgImage else {
+            return nil
+        }
+
+        let filter = CIFilter(name: "CIColorBlendMode")
+        filter?.setValue(CIImage(cgImage: cgImage), forKey: kCIInputBackgroundImageKey)
+        filter?.setValue(CIImage(cgImage: coloredCGImage), forKey: kCIInputImageKey)
+        let context = CIContext()
+        if let outputImage = filter?.outputImage, let imageRef = context.createCGImage(outputImage, from: outputImage.extent) {
+            return UIImage(cgImage: imageRef, scale: self.base.scale, orientation: self.base.imageOrientation)
+        }
+        return nil
+    }
+
+    /// 为当前图片叠加渐变色，生成一张新图片并返回，在叠加过程中会保留图片内的纹理。
+    ///
+    /// 这个方法可能比较慢，会卡住主线程，建议异步使用
+    ///
+    /// - Parameter blendColors: 要叠加的颜色
+    /// - Parameter direction: 渐变方向
+    /// - Returns: 基于当前图片纹理保持不变的情况下颜色变为指定的叠加颜色的新图片
+    func image(blendColors: [UIColor], direction: UIImage.GraphicDirection = .left2right) -> UIImage? {
+        guard let cgImage = self.base.cgImage, let gradientCGImage = UIImage(dvt: blendColors, size: self.base.size, direction: direction)?.cgImage else {
+            return nil
+        }
+        return Self.image(self.base.size, isOpaque: self.isOpaque, scale: self.base.scale) { contextRef in
+            contextRef.clip(to: CGRect(origin: .zero, size: self.base.size), mask: cgImage)
+            contextRef.draw(gradientCGImage, in: CGRect(origin: .zero, size: self.base.size))
+        }
+    }
+}
+
 // MARK: - 通过颜色初始化图片
 
 public extension UIImage {
@@ -253,7 +405,7 @@ public extension UIImage {
     ///   - scale: 倍率
     convenience init?(dvt color: UIColor, size: CGSize = CGSize(width: 10, height: 10), scale: CGFloat = UIScreen.main.scale) {
         let rect = CGRect(x: 0.0, y: 0.0, width: size.width * scale, height: size.height * scale)
-        UIGraphicsBeginImageContextWithOptions(size.dvt.convertRect(scale), false, scale)
+        UIGraphicsBeginImageContextWithOptions(size.dvt.convert(scale), false, scale)
         guard let context = UIGraphicsGetCurrentContext() else {
             return nil
         }

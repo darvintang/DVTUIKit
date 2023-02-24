@@ -31,8 +31,8 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
 #if canImport(DVTUIKit_Extension)
     import DVTUIKit_Extension
@@ -43,17 +43,27 @@ public extension BaseWrapper where BaseType: UITextField {
         return self.base.dvt.value(forKey: "clearButton") as? UIButton
     }
 
+    var selectedRange: NSRange? {
+        set {
+            if let range = newValue { self.base.selectedTextRange = self.convertUITextRange(from: range) }
+            else { self.base.selectedTextRange = nil }
+        }
+        get {
+            if let textRange = self.base.selectedTextRange { return self.convertNSRange(from: textRange) }
+            return nil
+        }
+    }
+
     func setClearButtonImage(_ image: UIImage?, for state: UIControl.State = .normal) {
         self.clearButton?.setImage(image, for: state)
     }
 
     func convertUITextRange(from range: NSRange) -> UITextRange? {
-        if range.location == NSNotFound || NSMaxRange(range) > self.base.text?.count ?? 0 {
-            return nil
-        }
+        if range.location == NSNotFound || NSMaxRange(range) > self.base.text?.count ?? 0 { return nil }
 
         let beginning = self.base.beginningOfDocument
-        if let startPosition = self.base.position(from: beginning, offset: range.location), let endPosition = self.base.position(from: beginning, offset: NSMaxRange(range)) {
+        if let startPosition = self.base.position(from: beginning, offset: range.location),
+           let endPosition = self.base.position(from: beginning, offset: NSMaxRange(range)) {
             return self.base.textRange(from: startPosition, to: endPosition)
         }
         return nil
@@ -63,21 +73,5 @@ public extension BaseWrapper where BaseType: UITextField {
         let location = self.base.offset(from: self.base.beginningOfDocument, to: textRange.start)
         let length = self.base.offset(from: textRange.start, to: textRange.end)
         return NSRange(location: location, length: length)
-    }
-
-    var selectedRange: NSRange? {
-        set {
-            if let range = newValue {
-                self.base.selectedTextRange = self.convertUITextRange(from: range)
-            } else {
-                self.base.selectedTextRange = nil
-            }
-        }
-        get {
-            if let textRange = self.base.selectedTextRange {
-                return self.convertNSRange(from: textRange)
-            }
-            return nil
-        }
     }
 }

@@ -31,10 +31,10 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
-extension CALayer: NameSpace {}
+extension CALayer: NameSpace { }
 public extension BaseWrapper where BaseType: CALayer {
     var image: UIImage? {
         return UIImage.dvt.image(self.base.bounds.size, isOpaque: false) { contextRef in
@@ -42,7 +42,5 @@ public extension BaseWrapper where BaseType: CALayer {
         }
     }
 
-    var cgImage: CGImage? {
-        self.image?.cgImage
-    }
+    var cgImage: CGImage? { self.image?.cgImage }
 }

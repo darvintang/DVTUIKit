@@ -31,8 +31,8 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
 public extension BaseWrapper where BaseType: UIButton {
     func setBackgroundColor(_ color: UIColor?, for state: UIControl.State) {

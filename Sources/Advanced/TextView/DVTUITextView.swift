@@ -38,26 +38,28 @@ import UIKit
 #endif
 
 open class DVTUITextView: UITextView {
-    /// placeholder 的文字
-    @IBInspectable public var placeholder: String = "" {
-        didSet {
-            self.updatePlaceholderStyle()
-        }
+    // MARK: Lifecycle
+    override public init(frame: CGRect, textContainer: NSTextContainer?) {
+        super.init(frame: frame, textContainer: textContainer)
+        self.didInitialize()
     }
 
-    @IBInspectable public var placeholderColor: UIColor = UIColor(dvt: 0x43434450) {
-        didSet {
-            self.updatePlaceholderStyle()
-        }
+    public required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        self.didInitialize()
     }
 
-    /// placeholder 在默认位置上的偏移（默认位置会自动根据 textContainerInset、contentInset 来调整）
-    public var placeholderMargins: UIEdgeInsets = .zero {
-        didSet {
-            self.updatePlaceholderStyle()
-        }
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 
+    open func didInitialize() {
+        self.contentInsetAdjustmentBehavior = .never
+        NotificationCenter.default.addObserver(self, selector: #selector(self.updatePlaceholderLabelHidden), name: UITextView.textDidChangeNotification,
+                                               object: nil)
+    }
+
+    // MARK: Open
     override open var textAlignment: NSTextAlignment {
         didSet {
             self.updatePlaceholderStyle()
@@ -117,25 +119,6 @@ open class DVTUITextView: UITextView {
         }
     }
 
-    override public init(frame: CGRect, textContainer: NSTextContainer?) {
-        super.init(frame: frame, textContainer: textContainer)
-        self.didInitialize()
-    }
-
-    public required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        self.didInitialize()
-    }
-
-    open func didInitialize() {
-        self.contentInsetAdjustmentBehavior = .never
-        NotificationCenter.default.addObserver(self, selector: #selector(self.updatePlaceholderLabelHidden), name: UITextView.textDidChangeNotification, object: nil)
-    }
-
-    deinit {
-        NotificationCenter.default.removeObserver(self)
-    }
-
     override open func sizeThatFits(_ size: CGSize) -> CGSize {
         var resSize = size
         if resSize.width <= 0 { resSize.width = CGFLOAT_MAX }
@@ -170,10 +153,30 @@ open class DVTUITextView: UITextView {
         }
     }
 
-    // 如果在 handleTextChanged: 里主动调整 contentOffset，则为了避免被系统的自动调整覆盖，
-    // 会利用这个标记去屏蔽系统对 setContentOffset: 的调用
-    private var shouldRejectSystemScroll = false
+    // MARK: Public
+    /// placeholder 的文字
+    @IBInspectable
+    public var placeholder = "" {
+        didSet {
+            self.updatePlaceholderStyle()
+        }
+    }
 
+    @IBInspectable
+    public var placeholderColor = UIColor(dvt: 0x43434450) {
+        didSet {
+            self.updatePlaceholderStyle()
+        }
+    }
+
+    /// placeholder 在默认位置上的偏移（默认位置会自动根据 textContainerInset、contentInset 来调整）
+    public var placeholderMargins: UIEdgeInsets = .zero {
+        didSet {
+            self.updatePlaceholderStyle()
+        }
+    }
+
+    // MARK: Fileprivate
     fileprivate lazy var placeholderLabel: UILabel = {
         let label = UILabel()
         label.font = .dvt.regular(of: 12)
@@ -184,8 +187,14 @@ open class DVTUITextView: UITextView {
         return label
     }()
 
+    // MARK: Private
+    /// 如果在 handleTextChanged: 里主动调整 contentOffset，则为了避免被系统的自动调整覆盖，
+    /// 会利用这个标记去屏蔽系统对 setContentOffset: 的调用
+    private var shouldRejectSystemScroll = false
+
     private var allInsets: UIEdgeInsets {
-        self.textContainerInset.dvt.insetsConcat(self.placeholderMargins).dvt.insetsConcat(UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 5)).dvt.insetsConcat(self.adjustedContentInset)
+        self.textContainerInset.dvt.insetsConcat(self.placeholderMargins).dvt.insetsConcat(UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 5)).dvt
+            .insetsConcat(self.adjustedContentInset)
     }
 
     private func updatePlaceholderStyle() {
@@ -196,7 +205,8 @@ open class DVTUITextView: UITextView {
         self.updatePlaceholderLabelHidden()
     }
 
-    @objc private func updatePlaceholderLabelHidden() {
+    @objc
+    private func updatePlaceholderLabelHidden() {
         self.placeholderLabel.alpha = self.text.isEmpty && !self.placeholder.isEmpty ? 1 : 0
     }
 

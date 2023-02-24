@@ -31,8 +31,8 @@
 
  */
 
-import DVTLoger
 import UIKit
+import DVTLoger
 
 public let dvtuiloger = {
     let loger = Loger("DVTUIKit")
@@ -53,6 +53,7 @@ public struct DVTUIKitConfig {
     /// 需要提前hook的功能在这个函数里进行hook
     /// 例如获取UIViewController的状态，必须hook它的生命周期函数才能获取，如果等使用的时候再hook，第一次的结果会不准确
     public static func beginHook() {
+        dvtuiloger.debug("启动DVTUIKit")
         UIViewController.dvt.extension_swizzleed()
     }
 }

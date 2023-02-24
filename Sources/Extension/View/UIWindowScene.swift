@@ -5,8 +5,8 @@
 //  Created by darvin on 2022/9/14.
 //
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
 extension UIWindowScene: NameSpace {
     public static var main: UIWindowScene? {
@@ -17,8 +17,7 @@ extension UIWindowScene: NameSpace {
 public extension BaseWrapper where BaseType: UIWindowScene {
     /// 设置屏幕方向
     /// - Parameter orientation: 屏幕方向
-    @discardableResult
-    func rotate(to orientation: UIInterfaceOrientation) -> Bool {
+    @discardableResult func rotate(to orientation: UIInterfaceOrientation) -> Bool {
         if #available(iOS 16.0, *) {
             let toOrientation = UIInterfaceOrientationMask(rawValue: 1 << orientation.rawValue)
             self.base.requestGeometryUpdate(UIWindowScene.GeometryPreferences.iOS(interfaceOrientations: toOrientation))

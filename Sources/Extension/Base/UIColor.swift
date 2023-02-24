@@ -31,42 +31,12 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
-extension UIColor: NameSpace {}
+extension UIColor: NameSpace { }
 
 public extension BaseWrapper where BaseType == UIColor {
-    var isDynamic: Bool {
-        guard let cls = NSClassFromString("UI" + "Dynamic" + "Color") else {
-            return false
-        }
-        return self.base.isKind(of: cls)
-    }
-
-    /// 将当前颜色转化成跟随系统的动态颜色，基准为浅色，如果该颜色已经是动态的了就不会再转化了
-    /// - Returns: 返回一个动态颜色
-    func dynamic() -> UIColor {
-        if self.isDynamic {
-            return self.base
-        }
-        return UIColor.init { trait in
-            if trait.userInterfaceStyle == .light {
-                return self.base
-            } else {
-                let ciColor = CIColor(cgColor: self.base.cgColor)
-                return UIColor(red: 1 - ciColor.red, green: 1 - ciColor.green, blue: 1 - ciColor.blue, alpha: ciColor.alpha)
-            }
-        }
-    }
-
-    /// 给现有的颜色添加一个透明度
-    /// - Parameter alpha: 透明度
-    /// - Returns: 新的颜色
-    func alpha(_ alpha: CGFloat) -> UIColor {
-        return self.base.withAlphaComponent(alpha)
-    }
-
     /// 获取随机的颜色
     static var random: UIColor {
         let red = CGFloat(arc4random() % 256) / 255.0
@@ -74,6 +44,13 @@ public extension BaseWrapper where BaseType == UIColor {
         let blue = CGFloat(arc4random() % 256) / 255.0
         let color = UIColor(red: red, green: green, blue: blue, alpha: 1)
         return color
+    }
+
+    var isDynamic: Bool {
+        guard let cls = NSClassFromString("UI" + "Dynamic" + "Color") else {
+            return false
+        }
+        return self.base.isKind(of: cls)
     }
 
     var rgbaValue: UInt64 {
@@ -104,6 +81,29 @@ public extension BaseWrapper where BaseType == UIColor {
     var alpha: CGFloat {
         let ciColor = CIColor(cgColor: self.base.cgColor)
         return ciColor.alpha
+    }
+
+    /// 将当前颜色转化成跟随系统的动态颜色，基准为浅色，如果该颜色已经是动态的了就不会再转化了
+    /// - Returns: 返回一个动态颜色
+    func dynamic() -> UIColor {
+        if self.isDynamic {
+            return self.base
+        }
+        return UIColor.init { trait in
+            if trait.userInterfaceStyle == .light {
+                return self.base
+            } else {
+                let ciColor = CIColor(cgColor: self.base.cgColor)
+                return UIColor(red: 1 - ciColor.red, green: 1 - ciColor.green, blue: 1 - ciColor.blue, alpha: ciColor.alpha)
+            }
+        }
+    }
+
+    /// 给现有的颜色添加一个透明度
+    /// - Parameter alpha: 透明度
+    /// - Returns: 新的颜色
+    func alpha(_ alpha: CGFloat) -> UIColor {
+        return self.base.withAlphaComponent(alpha)
     }
 }
 
@@ -145,33 +145,21 @@ public extension UIColor {
         self.init(red: red, green: green, blue: blue, alpha: tempAlpha)
     }
 
-    convenience init(dvtLight: UIColor, dark: UIColor? = nil) {
-        self.init { trait in
-            if trait.userInterfaceStyle == .light {
-                return dvtLight
-            } else {
-                return dark ?? dvtLight
-            }
+    convenience init(dvt light: UIColor, dark: UIColor) {
+        self.init {
+            $0.userInterfaceStyle == .light ? light : dark
         }
     }
 
-    convenience init(dvtLight: UInt64, dark: UInt64? = nil) {
-        self.init { trait in
-            var color = UIColor(dvt: dvtLight)
-            if trait.userInterfaceStyle != .light {
-                color = UIColor(dvt: dark ?? dvtLight)
-            }
-            return color
+    convenience init(dvt light: UInt64, dark: UInt64) {
+        self.init {
+            $0.userInterfaceStyle == .light ? UIColor(dvt: light) : UIColor(dvt: dark)
         }
     }
 
-    convenience init(dvtLight: String, dark: String? = nil) {
-        self.init { trait in
-            var color = UIColor(dvt: dvtLight)
-            if trait.userInterfaceStyle != .light {
-                color = UIColor(dvt: dark ?? dvtLight)
-            }
-            return color
+    convenience init(dvt light: String, dark: String) {
+        self.init {
+            $0.userInterfaceStyle == .light ? UIColor(dvt: light) : UIColor(dvt: dark)
         }
     }
 }

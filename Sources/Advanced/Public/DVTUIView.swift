@@ -49,9 +49,7 @@ open class DVTUIView: UIView {
         self.makeLayoutSubviews()
     }
 
-    open func setupSubviews() {
-    }
+    open func setupSubviews() { }
 
-    open func makeLayoutSubviews() {
-    }
+    open func makeLayoutSubviews() { }
 }

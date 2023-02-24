@@ -31,8 +31,8 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
 public extension BaseWrapper where BaseType: UIView {
     class Constraint {
@@ -61,8 +61,7 @@ public extension BaseWrapper where BaseType: UIView {
     ///   - view: 参考的view
     ///   - closure: 约束条件
     /// - Returns: 生成的约束对象
-    @discardableResult
-    func addConstraint(_ view: UIView? = nil, closure: (_ make: Constraint) -> Void) -> NSLayoutConstraint? {
+    @discardableResult func addConstraint(_ view: UIView? = nil, closure: (_ make: Constraint) -> Void) -> NSLayoutConstraint? {
         let selfView = self.base
         guard let superview = selfView.superview else {
             return nil

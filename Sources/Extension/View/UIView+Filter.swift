@@ -31,67 +31,62 @@
 
  */
 
-import DVTFoundation
-import ObjectiveC
 import UIKit
+import ObjectiveC
+import DVTFoundation
 
 private extension UIView {
-    static var FilterViewKey: Int8 = 0
-    static var dvt_hook = false
-    var filterView: UIView {
-        guard let view = objc_getAssociatedObject(self, &Self.FilterViewKey) as? UIView else {
+    static var UIView_Extension_dvt_filterView_Key: Int8 = 0
+    static var UIView_Extension_dvt_hook_flag = false
+
+    var dvt_filterView: UIView {
+        guard let view = objc_getAssociatedObject(self, &Self.UIView_Extension_dvt_filterView_Key) as? UIView else {
             let view = UIView()
             view.isUserInteractionEnabled = false
             view.translatesAutoresizingMaskIntoConstraints = false
-            objc_setAssociatedObject(self, &Self.FilterViewKey, view, .OBJC_ASSOCIATION_RETAIN)
+            objc_setAssociatedObject(self, &Self.UIView_Extension_dvt_filterView_Key, view, .OBJC_ASSOCIATION_RETAIN)
             return view
         }
         return view
     }
 
     static func hook() {
-        defer {
-            Self.dvt_hook = true
-        }
-        if Self.dvt_hook {
-            return
-        }
-        let selectors = [
-            [#selector(addSubview(_:)), #selector(dvt_addSubview(_:))],
-            [#selector(layoutSubviews), #selector(dvt_layoutSubviews)],
-        ]
+        if Self.UIView_Extension_dvt_hook_flag { return }
+        defer { Self.UIView_Extension_dvt_hook_flag = true }
+        let selectors = [[#selector(addSubview(_:)), #selector(dvt_addSubview(_:))],
+                         [#selector(layoutSubviews), #selector(dvt_layoutSubviews)]]
 
         selectors.forEach { list in
             if list.count == 2, let o = list.first, let s = list.last {
-                UIView.swizzleSelector(o, swizzle: s)
+                UIView.dvt_swizzleInstanceSelector(o, swizzle: s)
             }
         }
     }
 
     @objc func dvt_layoutSubviews() {
         self.dvt_layoutSubviews()
-        self.filterView.frame = self.bounds
+        self.dvt_filterView.frame = self.bounds
     }
 
     @objc func dvt_addSubview(_ view: UIView) {
         self.dvt_addSubview(view)
-        if self.filterView.superview == self {
-            self.bringSubviewToFront(self.filterView)
+        if self.dvt_filterView.superview == self {
+            self.bringSubviewToFront(self.dvt_filterView)
         }
     }
 
     func addFilterView(_ color: UIColor, filter: String) {
         Self.hook()
-        if self.filterView.superview != self {
-            self.filterView.removeFromSuperview()
-            self.addSubview(self.filterView)
+        if self.dvt_filterView.superview != self {
+            self.dvt_filterView.removeFromSuperview()
+            self.addSubview(self.dvt_filterView)
         }
-        self.filterView.backgroundColor = color
-        self.filterView.layer.compositingFilter = filter
+        self.dvt_filterView.backgroundColor = color
+        self.dvt_filterView.layer.compositingFilter = filter
     }
 
     func removeFilter() {
-        self.filterView.removeFromSuperview()
+        self.dvt_filterView.removeFromSuperview()
     }
 }
 

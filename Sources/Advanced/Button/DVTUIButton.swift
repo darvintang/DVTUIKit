@@ -46,71 +46,7 @@ import UIKit
 /// 通过UIButtonConfiguration初始化的按钮设置图片方向按钮大小未验证
 ///
 open class DVTUIButton: UIButton {
-    @objc public enum ImagePosition: Int {
-        case top = 0, left, bottom, right
-        var isHorizontal: Bool {
-            [.left, .right].contains(self)
-        }
-
-        var isVertical: Bool {
-            [.top, .bottom].contains(self)
-        }
-    }
-
-    ///  当空间不够的时候是否确保图片不被压缩
-    public var ensureImage = true
-
-    open var position: ImagePosition = .left {
-        didSet {
-            if oldValue != self.position {
-                self.setNeedsLayout()
-            }
-        }
-    }
-
-    @IBInspectable open var spacing: CGFloat = .zero {
-        didSet {
-            if oldValue != self.spacing {
-                self.setNeedsLayout()
-            }
-        }
-    }
-
-    override open var contentVerticalAlignment: UIControl.ContentVerticalAlignment {
-        didSet {
-            if oldValue != self.contentVerticalAlignment {
-                self.setNeedsLayout()
-            }
-        }
-    }
-
-    override open var contentHorizontalAlignment: UIControl.ContentHorizontalAlignment {
-        didSet {
-            if oldValue != self.contentHorizontalAlignment {
-                self.setNeedsLayout()
-            }
-        }
-    }
-
-    private var imageSize: CGSize {
-        (self.image(for: self.state) ?? self.image(for: .normal))?.size ?? .zero
-    }
-
-    private var titleSize: CGSize {
-        self.titleLabel?.text = self.title(for: self.state) ?? self.title(for: .normal)
-        return self.titleLabel?.sizeThatFits(.zero) ?? .zero
-    }
-
-    private var needUpdatePosition: Bool {
-        self.imageSize != .zero && self.titleSize != .zero
-    }
-
-    override open var imageView: UIImageView? {
-        self.value(forKey: "_imageView") as? UIImageView
-    }
-
-    private var size: CGSize = .zero
-
+    // MARK: Lifecycle
     override public init(frame: CGRect) {
         super.init(frame: frame)
         self.didInitialize()
@@ -121,24 +57,91 @@ open class DVTUIButton: UIButton {
         self.didInitialize()
     }
 
-    open func didInitialize() {
-        assert(self.buttonType == .custom, "只支持UIButton.ButtonType.custom")
+    open func didInitialize() { assert(self.buttonType == .custom, "只支持UIButton.ButtonType.custom") }
+
+    // MARK: Open
+    open var position: ImagePosition = .left {
+        didSet {
+            if oldValue != self.position { self.setNeedsLayout() }
+        }
+    }
+
+    @IBInspectable open var spacing: CGFloat = .zero {
+        didSet {
+            if oldValue != self.spacing { self.setNeedsLayout() }
+        }
+    }
+
+    override open var contentVerticalAlignment: UIControl.ContentVerticalAlignment {
+        didSet {
+            if oldValue != self.contentVerticalAlignment { self.setNeedsLayout() }
+        }
+    }
+
+    override open var contentHorizontalAlignment: UIControl.ContentHorizontalAlignment {
+        didSet {
+            if oldValue != self.contentHorizontalAlignment { self.setNeedsLayout() }
+        }
+    }
+
+    override open var imageView: UIImageView? { self.value(forKey: "_imageView") as? UIImageView }
+
+    /// 如果是自动布局会走到这里来，计算其大小
+    override open var intrinsicContentSize: CGSize {
+        self.calculateSize(super.intrinsicContentSize)
     }
 
     override open func setNeedsLayout() {
-        if !self.translatesAutoresizingMaskIntoConstraints {
-            // 如果是自动布局，更新的时候将原计算出来的大小设置失效
-            self.invalidateIntrinsicContentSize()
-        }
+        // 如果是自动布局，更新的时候将原计算出来的大小设置失效
+        if !self.translatesAutoresizingMaskIntoConstraints { self.invalidateIntrinsicContentSize() }
         super.setNeedsLayout()
     }
 
     override open func layoutSubviews() {
         super.layoutSubviews()
-        if self.needUpdatePosition {
-            self.calculateSubviewsFrame()
-        }
+        if self.needUpdatePosition { self.calculateSubviewsFrame() }
     }
+
+    override open func sizeThatFits(_ size: CGSize) -> CGSize {
+        self.titleLabel?.sizeThatFits(.zero)
+        return super.sizeThatFits(size)
+    }
+
+    override open func setTitle(_ title: String?, for state: UIControl.State) {
+        super.setTitle(title, for: state)
+        self.sizeToFit()
+    }
+
+    override open func setImage(_ image: UIImage?, for state: UIControl.State) {
+        super.setImage(image, for: state)
+        self.sizeToFit()
+    }
+
+    // MARK: Public
+    @objc
+    public enum ImagePosition: Int {
+        case top = 0, left, bottom, right
+
+        // MARK: Internal
+        var isHorizontal: Bool { [.left, .right].contains(self) }
+
+        var isVertical: Bool { [.top, .bottom].contains(self) }
+    }
+
+    ///  当空间不够的时候是否确保图片不被压缩
+    public var ensureImage = true
+
+    // MARK: Private
+    private var size: CGSize = .zero
+
+    private var imageSize: CGSize { (self.image(for: self.state) ?? self.image(for: .normal))?.size ?? .zero }
+
+    private var titleSize: CGSize {
+        self.titleLabel?.text = self.title(for: self.state) ?? self.title(for: .normal)
+        return self.titleLabel?.sizeThatFits(.zero) ?? .zero
+    }
+
+    private var needUpdatePosition: Bool { self.imageSize != .zero && self.titleSize != .zero }
 
     private func calculateSubviewsFrame() {
         let contentFrame = CGRect(origin: CGPoint(x: self.contentEdgeInsets.left,
@@ -187,12 +190,16 @@ open class DVTUIButton: UIButton {
             switch self.contentHorizontalAlignment {
                 case .center, .fill:
                     offsetx = max(0, (contentSize.width - iw - tw -
-                            (self.position == .left ? (self.imageEdgeInsets.left + self.titleEdgeInsets.right + lspacing) : (self.imageEdgeInsets.right + self.titleEdgeInsets.left + rspacing))) / 2)
-                case .left, .leading:
+                            (self
+                                .position == .left ? (self.imageEdgeInsets.left + self.titleEdgeInsets.right + lspacing) :
+                                (self.imageEdgeInsets.right + self.titleEdgeInsets.left + rspacing))) / 2)
+                case .leading, .left:
                     offsetx = 0
                 case .right, .trailing:
                     offsetx = max(0, contentSize.width - iw - tw -
-                        (self.position == .left ? (self.imageEdgeInsets.left + self.titleEdgeInsets.right + lspacing) : (self.imageEdgeInsets.right + self.titleEdgeInsets.left + rspacing)))
+                        (self
+                            .position == .left ? (self.imageEdgeInsets.left + self.titleEdgeInsets.right + lspacing) :
+                            (self.imageEdgeInsets.right + self.titleEdgeInsets.left + rspacing)))
                 default:
                     break
             }
@@ -200,9 +207,8 @@ open class DVTUIButton: UIButton {
             if self.position == .left {
                 ix = offsetx + self.imageEdgeInsets.left
                 let compress = contentSize.width < (self.imageEdgeInsets.left + iw + lspacing + tw + self.titleEdgeInsets.right)
-                if !compress {
-                    tx = ix + iw + lspacing
-                } else {
+                if !compress { tx = ix + iw + lspacing }
+                else {
                     if self.contentHorizontalAlignment == .fill {
                         let scale = contentSize.width / (self.imageEdgeInsets.left + iw + lspacing + tw + self.titleEdgeInsets.right)
                         iw *= scale
@@ -223,9 +229,8 @@ open class DVTUIButton: UIButton {
             } else {
                 tx = offsetx + self.titleEdgeInsets.left
                 let compress = contentSize.width < (self.imageEdgeInsets.right + iw + rspacing + tw + self.titleEdgeInsets.left)
-                if !compress {
-                    ix = tx + tw + rspacing
-                } else {
+                if !compress { ix = tx + tw + rspacing }
+                else {
                     if self.contentHorizontalAlignment == .fill {
                         let scale = contentSize.width / (self.imageEdgeInsets.right + iw + rspacing + tw + self.titleEdgeInsets.left)
                         iw *= scale
@@ -250,7 +255,7 @@ open class DVTUIButton: UIButton {
                 case .center:
                     tx = max(self.titleEdgeInsets.left, (contentSize.width - tw) / 2)
                     ix = max(self.imageEdgeInsets.left, (contentSize.width - iw) / 2)
-                case .left, .leading:
+                case .leading, .left:
                     tx = self.titleEdgeInsets.left
                     ix = self.imageEdgeInsets.left
                 case .right, .trailing:
@@ -263,21 +268,24 @@ open class DVTUIButton: UIButton {
             switch self.contentVerticalAlignment {
                 case .center, .fill:
                     offsety = max(0, (contentSize.height - ih - th -
-                            (self.position == .top ? (self.imageEdgeInsets.top + self.titleEdgeInsets.bottom + tspacing) : (self.imageEdgeInsets.bottom + self.titleEdgeInsets.top + bspacing))) / 2)
+                            (self
+                                .position == .top ? (self.imageEdgeInsets.top + self.titleEdgeInsets.bottom + tspacing) :
+                                (self.imageEdgeInsets.bottom + self.titleEdgeInsets.top + bspacing))) / 2)
                 case .top:
                     offsety = 0
                 case .bottom:
                     offsety = max(0, contentSize.height - ih - th -
-                        (self.position == .top ? (self.imageEdgeInsets.top + self.titleEdgeInsets.bottom + tspacing) : (self.imageEdgeInsets.bottom + self.titleEdgeInsets.top + bspacing)))
+                        (self
+                            .position == .top ? (self.imageEdgeInsets.top + self.titleEdgeInsets.bottom + tspacing) :
+                            (self.imageEdgeInsets.bottom + self.titleEdgeInsets.top + bspacing)))
                 default:
                     break
             }
             if self.position == .top {
                 iy = offsety + self.imageEdgeInsets.top
                 let compress = contentSize.height < (self.imageEdgeInsets.top + ih + tspacing + th + self.titleEdgeInsets.bottom)
-                if !compress {
-                    ty = iy + ih + tspacing
-                } else {
+                if !compress { ty = iy + ih + tspacing }
+                else {
                     if self.contentVerticalAlignment == .fill {
                         let scale = contentSize.height / (self.imageEdgeInsets.top + ih + tspacing + th + self.titleEdgeInsets.bottom)
                         ih *= scale
@@ -298,9 +306,8 @@ open class DVTUIButton: UIButton {
             } else {
                 ty = offsety + self.titleEdgeInsets.top
                 let compress = contentSize.height < (self.imageEdgeInsets.bottom + ih + bspacing + th + self.titleEdgeInsets.top)
-                if !compress {
-                    iy = ty + th + bspacing
-                } else {
+                if !compress { iy = ty + th + bspacing }
+                else {
                     if self.contentVerticalAlignment == .fill {
                         let scale = contentSize.height / (self.imageEdgeInsets.bottom + ih + bspacing + th + self.titleEdgeInsets.top)
                         ih *= scale
@@ -324,26 +331,6 @@ open class DVTUIButton: UIButton {
         self.imageView?.frame = CGRect(x: ix + contentOrigin.x, y: iy + contentOrigin.y, width: iw, height: ih)
     }
 
-    override open func sizeThatFits(_ size: CGSize) -> CGSize {
-        self.titleLabel?.sizeThatFits(.zero)
-        return super.sizeThatFits(size)
-    }
-
-    override open func setTitle(_ title: String?, for state: UIControl.State) {
-        super.setTitle(title, for: state)
-        self.sizeToFit()
-    }
-
-    override open func setImage(_ image: UIImage?, for state: UIControl.State) {
-        super.setImage(image, for: state)
-        self.sizeToFit()
-    }
-
-    /// 如果是自动布局会走到这里来，计算其大小
-    override open var intrinsicContentSize: CGSize {
-        return self.calculateSize(super.intrinsicContentSize)
-    }
-
     private func calculateSize(_ size: CGSize) -> CGSize {
         var width = size.width
         var height = size.height
@@ -352,9 +339,11 @@ open class DVTUIButton: UIButton {
             height += (max(self.titleEdgeInsets.top, self.imageEdgeInsets.top) + max(self.titleEdgeInsets.bottom, self.imageEdgeInsets.bottom))
             if self.needUpdatePosition {
                 if self.position == .left {
-                    width += (self.imageEdgeInsets.left + max(self.spacing, max(self.imageEdgeInsets.right, self.titleEdgeInsets.left)) + self.titleEdgeInsets.right)
+                    width +=
+                        (self.imageEdgeInsets.left + max(self.spacing, max(self.imageEdgeInsets.right, self.titleEdgeInsets.left)) + self.titleEdgeInsets.right)
                 } else {
-                    width += (self.imageEdgeInsets.right + max(self.spacing, max(self.imageEdgeInsets.left, self.titleEdgeInsets.right)) + self.titleEdgeInsets.left)
+                    width +=
+                        (self.imageEdgeInsets.right + max(self.spacing, max(self.imageEdgeInsets.left, self.titleEdgeInsets.right)) + self.titleEdgeInsets.left)
                 }
             } else if self.imageSize == .zero {
                 width += (self.titleEdgeInsets.left + self.titleEdgeInsets.right)
@@ -368,9 +357,11 @@ open class DVTUIButton: UIButton {
             width += (max(self.titleEdgeInsets.left, self.imageEdgeInsets.left) + max(self.titleEdgeInsets.right, self.imageEdgeInsets.right))
             if self.needUpdatePosition {
                 if self.position == .top {
-                    height += (self.imageEdgeInsets.top + max(self.spacing, max(self.imageEdgeInsets.bottom, self.titleEdgeInsets.top)) + self.titleEdgeInsets.bottom)
+                    height +=
+                        (self.imageEdgeInsets.top + max(self.spacing, max(self.imageEdgeInsets.bottom, self.titleEdgeInsets.top)) + self.titleEdgeInsets.bottom)
                 } else {
-                    height += (self.imageEdgeInsets.bottom + max(self.spacing, max(self.imageEdgeInsets.top, self.titleEdgeInsets.bottom)) + self.titleEdgeInsets.top)
+                    height +=
+                        (self.imageEdgeInsets.bottom + max(self.spacing, max(self.imageEdgeInsets.top, self.titleEdgeInsets.bottom)) + self.titleEdgeInsets.top)
                 }
             } else if self.imageSize == .zero {
                 height += (self.titleEdgeInsets.top + self.titleEdgeInsets.bottom)

@@ -31,8 +31,8 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
 public extension BaseWrapper where BaseType: UINavigationController {
     func pushViewController(_ viewController: UIViewController, animated: Bool = true, completion: (() -> Void)? = nil) {
@@ -43,8 +43,7 @@ public extension BaseWrapper where BaseType: UINavigationController {
         }
     }
 
-    @discardableResult
-    func popViewController(animated: Bool = true, completion: (() -> Void)? = nil) -> UIViewController? {
+    @discardableResult func popViewController(animated: Bool = true, completion: (() -> Void)? = nil) -> UIViewController? {
         let navigationController = self.base
         let result = navigationController.popViewController(animated: animated)
         navigationController.dvt.animateAlongsideTransition { _ in
@@ -53,8 +52,8 @@ public extension BaseWrapper where BaseType: UINavigationController {
         return result
     }
 
-    @discardableResult
-    func popToViewController(_ viewController: UIViewController, animated: Bool = true, completion: (() -> Void)? = nil) -> [UIViewController]? {
+    @discardableResult func popToViewController(_ viewController: UIViewController, animated: Bool = true,
+                                                completion: (() -> Void)? = nil) -> [UIViewController]? {
         let navigationController = self.base
         let result = navigationController.popToViewController(viewController, animated: animated)
         navigationController.dvt.animateAlongsideTransition { _ in
@@ -63,8 +62,7 @@ public extension BaseWrapper where BaseType: UINavigationController {
         return result
     }
 
-    @discardableResult
-    func popToRootViewController(animated: Bool = true, completion: (() -> Void)? = nil) -> [UIViewController]? {
+    @discardableResult func popToRootViewController(animated: Bool = true, completion: (() -> Void)? = nil) -> [UIViewController]? {
         let navigationController = self.base
         let result = navigationController.popToRootViewController(animated: animated)
         navigationController.dvt.animateAlongsideTransition { _ in

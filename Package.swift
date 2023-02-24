@@ -104,7 +104,7 @@ fileprivate extension ProductInfoProtocol {
 fileprivate enum LocalPackage: String, ProductInfoProtocol {
     case oneself = "DVTUIKit"
     enum Advanced: String, ProductInfoProtocol {
-        case alert, button, collection,
+        case alert, button, badge,collection,
              emptyView, label, modalPresentation,
              moreOperation, navigation, progress,
              `public`, textField, textView, tips

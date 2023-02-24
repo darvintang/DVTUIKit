@@ -31,14 +31,14 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
 public extension BaseWrapper where BaseType: UITabBarController {
-    @discardableResult func addChild(_ child: UIViewController, title: String? = nil, image: UIImage?, select sImage: UIImage? = nil) -> UITabBarItem {
+    @discardableResult func addChild(_ childController: UIViewController, title: String? = nil, image: UIImage?, select sImage: UIImage? = nil) -> UITabBarItem {
         let tabbarItem = UITabBarItem(title: title, image: image, selectedImage: sImage)
-        child.tabBarItem = tabbarItem
-        self.base.addChild(child)
+        childController.tabBarItem = tabbarItem
+        self.base.addChild(childController)
         return tabbarItem
     }
 }

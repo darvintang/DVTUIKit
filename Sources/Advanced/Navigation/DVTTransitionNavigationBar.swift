@@ -31,38 +31,33 @@
 
  */
 
-import DVTFoundation
-import ObjectiveC
 import UIKit
+import ObjectiveC
+import DVTFoundation
 
 #if canImport(DVTUIKit_Extension)
     import DVTUIKit_Extension
 #endif
 
-fileprivate extension DVTTransitionNavigationBar {
-    @objc func dvt_didMove(_ from: UIWindow?, to window: UIWindow?) {
+private extension UINavigationBar {
+    @objc
+    func dvt_didMove(_ from: UIWindow?, to window: UIWindow?) {
         self.dvt_didMove(from, to: window)
     }
 
-    @objc func dvt_accessibility_navigationController() -> UINavigationController? {
+    @objc
+    func dvt_accessibility_navigationController() -> UINavigationController? {
         let didOSel = NSSelectorFromString("dvt_" + "accessibility_" + "navigationController")
-        // 与QMUI的hook冲突，QMUI的hook导致UINavigationBar也会走到该方法
-        // UINavigationBar未实现dvt_accessibility_navigationController，所以会崩溃
-        if self.isKind(of: DVTTransitionNavigationBar.self) {
-            if let oBar = self.originalBar {
-                return oBar.perform(didOSel)?.takeUnretainedValue() as? UINavigationController
-            } else {
-                return self.perform(didOSel)?.takeUnretainedValue() as? UINavigationController
-            }
+        if let oBar = (self as? DVTTransitionNavigationBar)?.originalBar {
+            return oBar.perform(didOSel)?.takeUnretainedValue() as? UINavigationController
+        } else {
+            return self.perform(didOSel)?.takeUnretainedValue() as? UINavigationController
         }
-        return nil
     }
 }
 
 open class DVTTransitionNavigationBar: UINavigationBar {
-    public var shouldPreventRender: Bool = false
-    public weak var originalBar: UINavigationBar?
-
+    // MARK: Lifecycle
     override public init(frame: CGRect) {
         super.init(frame: frame)
         Self.swizzleedMethod()
@@ -73,6 +68,7 @@ open class DVTTransitionNavigationBar: UINavigationBar {
         Self.swizzleedMethod()
     }
 
+    // MARK: Open
     override open func didAddSubview(_ subview: UIView) {
         super.didAddSubview(subview)
         if subview == self.dvt.backgroundView {
@@ -87,41 +83,32 @@ open class DVTTransitionNavigationBar: UINavigationBar {
         super.layoutSubviews()
     }
 
-    private static var SwizzleedMethod = false
-    private static func swizzleedMethod() {
-        if !self.SwizzleedMethod {
-            if #available(iOS 15.0, *) {
-                let didOSel = NSSelectorFromString("_didMove" + "FromWindow:" + "toWindow:")
-                let didSSel = NSSelectorFromString("dvt_didMove(_:to:)")
-                self.swizzleSelector(didOSel, swizzle: didSSel)
-            }
-            if #available(iOS 14.0, *) {
-                let didOSel = NSSelectorFromString("_" + "accessibility" + "_" + "navigationController")
-                let didSSel = NSSelectorFromString("dvt_" + "accessibility" + "_navigationController")
-                self.swizzleSelector(didOSel, swizzle: didSSel)
-            }
+    // MARK: Public
+    public var shouldPreventRender = false
+    public weak var originalBar: UINavigationBar?
 
-            self.SwizzleedMethod = true
+    // MARK: Private
+    private static var DVTTransitionNavigationBar_swizzleedMethod_flag = false
+
+    private static func swizzleedMethod() {
+        if self.DVTTransitionNavigationBar_swizzleedMethod_flag { return }
+        defer { self.DVTTransitionNavigationBar_swizzleedMethod_flag = true }
+
+        if #available(iOS 15.0, *) {
+            let didOSel = NSSelectorFromString("_didMove" + "FromWindow:" + "toWindow:")
+            let didSSel = NSSelectorFromString("dvt_didMove(_:to:)")
+            self.dvt_swizzleInstanceSelector(didOSel, swizzle: didSSel)
+        }
+        if #available(iOS 14.0, *) {
+            let didOSel = NSSelectorFromString("_" + "accessibility" + "_" + "navigationController")
+            let didSSel = NSSelectorFromString("dvt_" + "accessibility" + "_navigationController")
+            self.dvt_swizzleInstanceSelector(didOSel, swizzle: didSSel)
         }
     }
 }
 
 public class DVTUINavigationBarStyle {
-    private let id = UUID().uuidString
-    private static var _default = DVTUINavigationBarStyle(UINavigationBarAppearance())
-    public static var `default`: DVTUINavigationBarStyle {
-        get {
-            _default
-        }
-        set {
-            if _default.id != newValue.id {
-                dvtuiloger.error("仅允许修改属性，不允许直接修改对象")
-            } else {
-                _default = newValue
-            }
-        }
-    }
-
+    // MARK: Lifecycle
     public init(_ delegate: DVTUINavigationBarStyleDelegate? = nil) {
         self.dvt_navigationBarHidden = delegate?.dvt_navigationBarHidden ?? false
         self.dvt_navigationBarTintColor = delegate?.dvt_navigationBarTintColor
@@ -162,13 +149,34 @@ public class DVTUINavigationBarStyle {
         self.dvt_backImage = appearance.backIndicatorImage
     }
 
-    public var dvt_navigationBarHidden: Bool = false
+    // MARK: Public
+    public static var `default`: DVTUINavigationBarStyle {
+        get {
+            _default
+        }
+        set {
+            if _default.id != newValue.id {
+                dvtuiloger.error("仅允许修改属性，不允许直接修改对象")
+            } else {
+                _default = newValue
+            }
+        }
+    }
+
+    public var dvt_navigationBarHidden = false
 
     public var dvt_navigationBarTintColor: UIColor?
 
     public var dvt_titleViewTintColor: UIColor?
     public var dvt_titleViewFont: UIFont?
     public var dvt_titleViewLargeFont: UIFont?
+
+    public var dvt_navigationBarBackgroundImage: UIImage?
+    public var dvt_navigationBarBackgroundEffect: UIBlurEffect?
+
+    public var dvt_navigationBarBackTitle: String?
+    public var dvt_backImage: UIImage?
+    public var dvt_backImageColor: UIColor?
 
     public var dvt_navigationBarBackgroundColor: UIColor? {
         didSet {
@@ -177,9 +185,6 @@ public class DVTUINavigationBarStyle {
             }
         }
     }
-
-    public var dvt_navigationBarBackgroundImage: UIImage?
-    public var dvt_navigationBarBackgroundEffect: UIBlurEffect?
 
     public var dvt_navigationBarShadowColor: UIColor? {
         didSet {
@@ -197,10 +202,7 @@ public class DVTUINavigationBarStyle {
         }
     }
 
-    public var dvt_navigationBarBackTitle: String?
-    public var dvt_backImage: UIImage?
-    public var dvt_backImageColor: UIColor?
-
+    // MARK: Internal
     func getAppearance() -> UINavigationBarAppearance {
         let navigationBarAppearance = UINavigationBarAppearance()
         navigationBarAppearance.configureWithDefaultBackground()
@@ -240,6 +242,11 @@ public class DVTUINavigationBarStyle {
         }
         return navigationBarAppearance
     }
+
+    // MARK: Private
+    private static var _default = DVTUINavigationBarStyle(UINavigationBarAppearance())
+
+    private let id = UUID().uuidString
 }
 
 public protocol DVTUINavigationBarStyleDelegate {
@@ -270,12 +277,13 @@ public protocol DVTUINavigationBarStyleDelegate {
 
     /// 下一级界面返回按钮文字
     var dvt_navigationBarBackTitle: String? { get }
-    /// 当前界面返回按钮显示的文字
-    /// - Parameter viewController: 上一级界面
-    /// - Returns: 当前界面返回按钮显示的文字
-    func dvt_revealNavigationBarBackTitle(_ viewController: UIViewController) -> String?
     /// 返回按钮图标
     var dvt_backImage: UIImage? { get }
     /// 返回按钮颜色，如果有返回颜色就将图片渲染成设置的颜色
     var dvt_backImageColor: UIColor? { get }
+
+    /// 当前界面返回按钮显示的文字
+    /// - Parameter viewController: 上一级界面
+    /// - Returns: 当前界面返回按钮显示的文字
+    func dvt_revealNavigationBarBackTitle(_ viewController: UIViewController) -> String?
 }

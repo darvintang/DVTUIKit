@@ -37,26 +37,31 @@ import UIKit
     import DVTUIKit_Extension
 #endif
 
-extension UICollectionView {
-    public static let elementKindSectionBackground = "DVTUIKit.UICollectionView.ElementKindSectionBackground"
+public extension UICollectionView {
+    static let elementKindSectionBackground = "DVTUIKit.UICollectionView.ElementKindSectionBackground"
 }
 
 public protocol DPIDecorationCollectionViewDelegateFlowLayout: UICollectionViewDelegateFlowLayout {
     associatedtype DecorationType: Equatable
     /// 装饰控件的属性设置
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, decorationLayoutAttributeForSectionAt section: Int) -> UICollectionViewLayoutAttributes?
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout,
+                        decorationLayoutAttributeForSectionAt section: Int) -> UICollectionViewLayoutAttributes?
     /// 装饰控件的装饰属性
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, backgroundDecorationForSectionAt section: Int) -> DecorationType?
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, backgroundDecorationForSectionAt section: Int)
+        -> DecorationType?
 }
 
-extension DPIDecorationCollectionViewDelegateFlowLayout {
-    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, decorationLayoutAttributeForSectionAt section: Int) -> UICollectionViewLayoutAttributes? {
-        let attribute = DVTDecorationCollectionViewLayoutAttributes<DecorationType>(forDecorationViewOfKind: UICollectionView.elementKindSectionBackground, with: IndexPath(item: 0, section: section))
+public extension DPIDecorationCollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout,
+                        decorationLayoutAttributeForSectionAt section: Int) -> UICollectionViewLayoutAttributes? {
+        let attribute = DVTDecorationCollectionViewLayoutAttributes<DecorationType>(forDecorationViewOfKind: UICollectionView.elementKindSectionBackground,
+                                                                                    with: IndexPath(item: 0, section: section))
         attribute.extAttribute = self.collectionView(collectionView, layout: collectionViewLayout, backgroundDecorationForSectionAt: section)
         return attribute
     }
 
-    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, backgroundDecorationForSectionAt section: Int) -> DecorationType? {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout,
+                        backgroundDecorationForSectionAt section: Int) -> DecorationType? {
         nil
     }
 }
@@ -64,6 +69,7 @@ extension DPIDecorationCollectionViewDelegateFlowLayout {
 /// UICollectionView的装饰类，会发生复用，UI更新请在 extAttribute 的 didSet 内完成
 open class DVTDecorationCollectionReusableView<DecorationType: Equatable>: UICollectionReusableView {
     open var extAttribute: DecorationType?
+
     override open func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
         super.apply(layoutAttributes)
         if let attribute = layoutAttributes as? DVTDecorationCollectionViewLayoutAttributes<DecorationType> {
@@ -76,7 +82,14 @@ open class DVTDecorationCollectionReusableView<DecorationType: Equatable>: UICol
 }
 
 open class DVTDecorationCollectionViewLayoutAttributes<DecorationType: Equatable>: UICollectionViewLayoutAttributes {
+    // MARK: Lifecycle
+    public convenience init(forDecorationViewOfKind kind: String = UICollectionView.elementKindSectionBackground, with section: Int) {
+        self.init(forDecorationViewOfKind: kind, with: IndexPath(item: 0, section: section))
+    }
+
+    // MARK: Open
     open var extAttribute: DecorationType?
+
     override open func copy(with zone: NSZone? = nil) -> Any {
         let copy = super.copy(with: zone)
         (copy as? DVTDecorationCollectionViewLayoutAttributes)?.extAttribute = self.extAttribute
@@ -93,14 +106,10 @@ open class DVTDecorationCollectionViewLayoutAttributes<DecorationType: Equatable
             return super.isEqual(object)
         }
     }
-
-    public convenience init(forDecorationViewOfKind kind: String = UICollectionView.elementKindSectionBackground, with section: Int) {
-        self.init(forDecorationViewOfKind: kind, with: IndexPath(item: 0, section: section))
-    }
 }
 
-extension UICollectionView {
-    public func register<DecorationType: Equatable>(_ viewClass: DVTDecorationCollectionReusableView<DecorationType>.Type, forDecorationViewOf kind: String) {
+public extension UICollectionView {
+    func register<DecorationType: Equatable>(_ viewClass: DVTDecorationCollectionReusableView<DecorationType>.Type, forDecorationViewOf kind: String) {
         if let layout = self.collectionViewLayout as? DVTAlignCollectionViewFlowLayout {
             layout.register(viewClass, forDecorationViewOf: kind)
         }
@@ -109,34 +118,19 @@ extension UICollectionView {
 
 /// 调整cell对其方式，必须确保cell等宽或等高(水平等高，垂直等宽)，为UICollectionView分段背景添加装饰视图
 open class DVTAlignCollectionViewFlowLayout: UICollectionViewFlowLayout {
-    private var decorationViewAttrs: [UICollectionViewLayoutAttributes] = []
-
-    /// 是否启用分组背景
-    private var useDecoration: Bool {
-        !self.kinds.isEmpty
-    }
-
-    public enum AlignType {
-        case none, left, center, right
-    }
-
-    open var type: AlignType = .none
-
+    // MARK: Lifecycle
     public convenience init(_ type: AlignType) {
         self.init()
         self.type = type
     }
 
-    private var kinds: [String] = []
-
-    public func register<DecorationType: Equatable>(_ viewClass: DVTDecorationCollectionReusableView<DecorationType>.Type, forDecorationViewOf kind: String) {
-        self.register(viewClass, forDecorationViewOfKind: kind)
-        self.kinds.append(kind)
-    }
+    // MARK: Open
+    open var type: AlignType = .none
 
     override open func prepare() {
         super.prepare()
-        guard self.useDecoration, let collectionView = self.collectionView, let delegate = collectionView.delegate as? (any DPIDecorationCollectionViewDelegateFlowLayout) else {
+        guard self.useDecoration, let collectionView = self.collectionView,
+              let delegate = collectionView.delegate as? (any DPIDecorationCollectionViewDelegateFlowLayout) else {
             return
         }
         let numberOfSections = collectionView.numberOfSections
@@ -161,7 +155,8 @@ open class DVTAlignCollectionViewFlowLayout: UICollectionViewFlowLayout {
                 sectionFrame.size.width = collectionView.dvt.width - collectionView.contentInset.left - collectionView.contentInset.left
                 sectionFrame.size.height += sectionInset.top + sectionInset.bottom
             }
-            if let attribute = delegate.collectionView(collectionView, layout: self, decorationLayoutAttributeForSectionAt: section), let kind = attribute.representedElementKind, self.kinds.contains(kind) {
+            if let attribute = delegate.collectionView(collectionView, layout: self, decorationLayoutAttributeForSectionAt: section),
+               let kind = attribute.representedElementKind, self.kinds.contains(kind) {
                 attribute.frame = sectionFrame
                 attribute.zIndex = -1
                 self.decorationViewAttrs.append(attribute)
@@ -209,7 +204,8 @@ open class DVTAlignCollectionViewFlowLayout: UICollectionViewFlowLayout {
             return
         }
 
-        let sectionInset = (collectionView.delegate as? UICollectionViewDelegateFlowLayout)?.collectionView?(collectionView, layout: self, insetForSectionAt: section) ?? self.sectionInset
+        let sectionInset = (collectionView.delegate as? UICollectionViewDelegateFlowLayout)?
+            .collectionView?(collectionView, layout: self, insetForSectionAt: section) ?? self.sectionInset
 
         var newY: CGFloat = -1
         var newX: CGFloat = -1
@@ -225,11 +221,15 @@ open class DVTAlignCollectionViewFlowLayout: UICollectionViewFlowLayout {
                 newY = sectionInset.top
                 newX = sectionInset.left
             case .center:
-                newY = (collectionView.dvt.height - rowSumCellHeight - CGFloat(attributes.count - 1) * self.minimumInteritemSpacing - sectionInset.top - sectionInset.bottom) / 2 + sectionInset.top
-                newX = (collectionView.dvt.width - rowSumCellWidth - CGFloat(attributes.count - 1) * self.minimumInteritemSpacing - sectionInset.left - sectionInset.right) / 2 + sectionInset.left
+                newY = (collectionView.dvt.height - rowSumCellHeight - CGFloat(attributes.count - 1) * self.minimumInteritemSpacing - sectionInset
+                    .top - sectionInset.bottom) / 2 + sectionInset.top
+                newX = (collectionView.dvt.width - rowSumCellWidth - CGFloat(attributes.count - 1) * self.minimumInteritemSpacing - sectionInset
+                    .left - sectionInset.right) / 2 + sectionInset.left
             case .right:
-                newY = collectionView.dvt.height - rowSumCellHeight - CGFloat(attributes.count - 1) * self.minimumInteritemSpacing - sectionInset.top - sectionInset.bottom + sectionInset.top
-                newX = collectionView.dvt.width - rowSumCellWidth - CGFloat(attributes.count - 1) * self.minimumInteritemSpacing - sectionInset.left - sectionInset.right + sectionInset.left
+                newY = collectionView.dvt.height - rowSumCellHeight - CGFloat(attributes.count - 1) * self.minimumInteritemSpacing - sectionInset
+                    .top - sectionInset.bottom + sectionInset.top
+                newX = collectionView.dvt.width - rowSumCellWidth - CGFloat(attributes.count - 1) * self.minimumInteritemSpacing - sectionInset
+                    .left - sectionInset.right + sectionInset.left
             default:
                 break
         }
@@ -249,5 +249,25 @@ open class DVTAlignCollectionViewFlowLayout: UICollectionViewFlowLayout {
                 newX = newFrame.maxX + self.minimumInteritemSpacing
             }
         }
+    }
+
+    // MARK: Public
+    public enum AlignType {
+        case none, left, center, right
+    }
+
+    public func register<DecorationType: Equatable>(_ viewClass: DVTDecorationCollectionReusableView<DecorationType>.Type, forDecorationViewOf kind: String) {
+        self.register(viewClass, forDecorationViewOfKind: kind)
+        self.kinds.append(kind)
+    }
+
+    // MARK: Private
+    private var decorationViewAttrs: [UICollectionViewLayoutAttributes] = []
+
+    private var kinds: [String] = []
+
+    /// 是否启用分组背景
+    private var useDecoration: Bool {
+        !self.kinds.isEmpty
     }
 }

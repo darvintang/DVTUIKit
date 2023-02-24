@@ -1,5 +1,5 @@
 //
-//  DVTProgressView.swift
+//  DVTUIProgressView.swift
 //  DVTUIKit_Progress
 //
 //  Created by darvin on 2022/8/15.
@@ -41,46 +41,31 @@ import UIKit
     import DVTUIKit_Public
 #endif
 
-fileprivate extension UIImage {
-    private static let bundleName = "DVTUIKit_DVTUIKitProgress"
-
+private extension UIImage {
+    // MARK: Internal
     static func image(_ named: String) -> UIImage? {
         let realName = "DVTUIKit_Progress_\(named)"
         // (main) OR (cocoapods default) OR (cocoapods Frameworks (generate_multiple_pod_projects)) OR (Bundle SPM)
-        return UIImage(named: "main_" + realName) ?? UIImage(named: realName) ?? .dvt.image(DVTProgressView.self, named: realName) ?? .dvt.image(self.bundleName, named: realName)
+        return UIImage(named: "main_" + realName) ?? UIImage(named: realName) ?? .dvt.image(DVTUIProgressView.self, named: realName) ?? .dvt
+            .image(self.bundleName, named: realName)
     }
+
+    // MARK: Private
+    private static let bundleName = "DVTUIKit_DVTUIKit.Progress"
 }
 
-open class DVTProgressView: DVTUIView {
-    fileprivate lazy var progressView: UIImageView = {
-        let view = UIImageView()
-        view.clipsToBounds = true
-        view.backgroundColor = UIColor(dvt: 0x888888)
-        view.contentMode = .scaleToFill
-        return view
-    }()
+open class DVTUIProgressView: DVTUIView {
+    // MARK: Lifecycle
+    override open func setupSubviews() {
+        super.setupSubviews()
+        self.addSubview(self.trackView)
 
-    fileprivate lazy var trackView: UIImageView = {
-        let view = UIImageView()
-        view.clipsToBounds = true
-        view.backgroundColor = UIColor(dvt: 0xEEEEEE)
-        view.isUserInteractionEnabled = true
-        view.contentMode = .scaleToFill
-        return view
-    }()
+        self.trackView.addSubview(self.progressMarkView)
+        self.progressMarkView.addSubview(self.progressView)
+        self.setDefault()
+    }
 
-    fileprivate lazy var progressMarkView: UIView = {
-        let view = UIView()
-        view.clipsToBounds = true
-        return view
-    }()
-
-    /// 设置进度的队列，预防开发者在外部设置进度和内部设置进度时产生的多线程问题
-    fileprivate lazy var queue: DispatchQueue = {
-        let queue = DispatchQueue(label: UUID().uuidString)
-        return queue
-    }()
-
+    // MARK: Open
     /// 进度条的高度
     open var progressHeight: CGFloat = 8 {
         didSet {
@@ -91,17 +76,12 @@ open class DVTProgressView: DVTUIView {
     }
 
     /// 是否使用圆角，默认 true
-    open var isRound: Bool = true {
+    open var isRound = true {
         didSet {
             if oldValue != self.isRound {
                 self.updaterRound()
             }
         }
-    }
-
-    /// 切圆角
-    fileprivate func updaterRound() {
-        self.trackView.layer.cornerRadius = self.isRound ? (self.progressHeight / 2) : 0
     }
 
     open var progressColor: UIColor? {
@@ -144,8 +124,6 @@ open class DVTProgressView: DVTUIView {
         }
     }
 
-    fileprivate var _progress: CGFloat = 0
-
     /// 当前进度，默认 0
     open var progress: CGFloat {
         set {
@@ -155,9 +133,7 @@ open class DVTProgressView: DVTUIView {
             self.queue.sync {
                 if _progress != newValue {
                     DispatchQueue.main.async {
-                        UIView.animate(withDuration: 0.1) {
-                            self.setSubviewsNewFrame()
-                        }
+                        self.setSubviewsNewFrame()
                     }
                 }
                 _progress = newValue
@@ -208,6 +184,43 @@ open class DVTProgressView: DVTUIView {
         }
     }
 
+    override open func layoutSubviews() {
+        super.layoutSubviews()
+        self.selfFrame = self.frame
+    }
+
+    // MARK: Fileprivate
+    fileprivate lazy var progressView: UIImageView = {
+        let view = UIImageView()
+        view.clipsToBounds = true
+        view.backgroundColor = UIColor(dvt: 0x888888)
+        view.contentMode = .scaleToFill
+        return view
+    }()
+
+    fileprivate lazy var trackView: UIImageView = {
+        let view = UIImageView()
+        view.clipsToBounds = true
+        view.backgroundColor = UIColor(dvt: 0xEEEEEE)
+        view.isUserInteractionEnabled = true
+        view.contentMode = .scaleToFill
+        return view
+    }()
+
+    fileprivate lazy var progressMarkView: UIView = {
+        let view = UIView()
+        view.clipsToBounds = true
+        return view
+    }()
+
+    /// 设置进度的队列，预防开发者在外部设置进度和内部设置进度时产生的多线程问题
+    fileprivate lazy var queue: DispatchQueue = {
+        let queue = DispatchQueue(label: UUID().uuidString)
+        return queue
+    }()
+
+    fileprivate var _progress: CGFloat = 0
+
     /// 通过在layoutSubviews中拿到的视图frame确定各子视图的frame
     fileprivate var selfFrame: CGRect = .zero {
         didSet {
@@ -215,6 +228,11 @@ open class DVTProgressView: DVTUIView {
                 self.setSubviewsNewFrame()
             }
         }
+    }
+
+    /// 切圆角
+    fileprivate func updaterRound() {
+        self.trackView.layer.cornerRadius = self.isRound ? (self.progressHeight / 2) : 0
     }
 
     fileprivate func setSubviewsNewFrame() {
@@ -225,7 +243,7 @@ open class DVTProgressView: DVTUIView {
         let frame = self.selfFrame
 
         let trackX: CGFloat = 0
-        let trackY = frame.height - self.progressHeight
+        let trackY = min(0, (frame.height - self.progressHeight) / 2)
 
         let trackFrame = CGRect(x: trackX, y: trackY, width: frame.width, height: self.progressHeight)
 
@@ -236,36 +254,23 @@ open class DVTProgressView: DVTUIView {
         self.progressView.frame = CGRect(origin: .zero, size: trackFrame.size)
     }
 
-    override open func layoutSubviews() {
-        super.layoutSubviews()
-        self.selfFrame = self.frame
-    }
-
-    override open func setupSubviews() {
-        super.setupSubviews()
-        self.addSubview(self.trackView)
-
-        self.trackView.addSubview(self.progressMarkView)
-        self.progressMarkView.addSubview(self.progressView)
-        self.setDefault()
-    }
-
     fileprivate func setDefault() {
         self.backgroundColor = .clear
         self.updaterRound()
     }
 }
 
-open class DVTSlideView: DVTProgressView {
-    fileprivate lazy var thumbImageView: UIImageView = {
-        let view = UIImageView()
-        view.isUserInteractionEnabled = true
-        view.contentMode = .scaleToFill
-        return view
-    }()
+open class DVTUISlider: DVTUIProgressView {
+    // MARK: Lifecycle
+    override open func setupSubviews() {
+        super.setupSubviews()
+        self.addSubview(self.progressPromptView)
+        self.addSubview(self.thumbImageView)
+    }
 
+    // MARK: Open
     /// 滑块的大小，默认 (24, 24)
-    open var thumbSize: CGSize = CGSize(width: 24, height: 24) {
+    open var thumbSize = CGSize(width: 24, height: 24) {
         didSet {
             if oldValue != self.thumbSize {
                 self.setSubviewsNewFrame()
@@ -276,47 +281,23 @@ open class DVTSlideView: DVTProgressView {
     /// 滑块的图片
     open var thumbImage: UIImage? {
         didSet {
-            self.thumbImageView.image = self.thumbImage
+            self.updateThumbImage()
         }
     }
 
-    override fileprivate var _progress: CGFloat {
+    /// 滑块颜色
+    open var thumbColor: UIColor? {
         didSet {
-            // 设置进度提示位置和文案
-            self.setProgressPrompt()
+            self.updateThumbImage()
         }
     }
 
-    public enum SlideStatus {
+    // MARK: Public
+    public enum SliderStatus {
         case begin, changed, ended
     }
 
-    public var slideCompletion: ((_ state: SlideStatus, _ progress: CGFloat) -> Void)?
-
-    // MARK: - 进度比例提示
-
-    /// 进度比例提示控件
-    private lazy var progressPromptView: UIButton = {
-        let btn = UIButton(type: .custom)
-        btn.isHidden = true
-        btn.isUserInteractionEnabled = false
-        btn.titleLabel?.font = UIFont.dvt.regular(of: 15)
-        btn.titleEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 6, right: 0)
-        btn.setBackgroundImage(.image("bg_progress_prompt"), for: .normal)
-        btn.sizeToFit()
-        return btn
-    }()
-
-    /// 进度提示控件设置
-    private func setProgressPrompt() {
-        self.progressPromptView.setTitle("\(Int(self._progress * 100))%", for: .normal)
-
-        self.configurationPrompt?(self.progressPromptView, self._progress)
-
-        let x = self.thumbImageView.frame.midX
-        let y = self.thumbImageView.frame.minY - self.progressPromptView.dvt.height / 2
-        self.progressPromptView.center = CGPoint(x: x, y: y)
-    }
+    public var sliderCompletion: ((_ state: SliderStatus, _ progress: CGFloat) -> Void)?
 
     /// 自定义进度提示控件
     public var configurationPrompt: ((_ view: UIButton, _ progress: CGFloat) -> Void)?
@@ -334,58 +315,27 @@ open class DVTSlideView: DVTProgressView {
         }
     }
 
-    // MARK: - 手势
-
-    private lazy var panGesture: UIPanGestureRecognizer = {
-        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(self.gestureRecognizer(_:)))
-        return panGesture
-    }()
-
-    private var oldPoint = CGPoint.zero
-    @objc private func gestureRecognizer(_ pan: UIPanGestureRecognizer) {
-        if pan.state == .began {
-            if self.isPrompt {
-                self.progressPromptView.isHidden = false
-            }
-            self.oldPoint = self.thumbImageView.center
-            self.thumbImageView.transform = CGAffineTransform(scaleX: 0.85, y: 0.85)
-            self.slideCompletion?(.begin, self._progress)
-        }
-        if pan.state == .changed {
-            let offsetPoint = pan.translation(in: self)
-            let newX = self.oldPoint.x + offsetPoint.x
-            self.setThumbCenter(CGPoint(x: newX, y: self.oldPoint.y))
-            self.slideCompletion?(.changed, self._progress)
-        }
-
-        if pan.state == .ended {
-            if self.isPrompt {
-                self.progressPromptView.isHidden = true
-            }
-            self.thumbImageView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
-            self.slideCompletion?(.ended, self._progress)
+    // MARK: Fileprivate
+    override fileprivate var _progress: CGFloat {
+        didSet {
+            // 设置进度提示位置和文案
+            self.setProgressPrompt()
         }
     }
 
-    private func setThumbCenter(_ point: CGPoint) {
-        let newX = min(max(point.x, self.thumbSize.width / 2), self.dvt.width - self.thumbSize.width / 2)
-        var frame = self.progressMarkView.frame
-        frame.size.width = frame.size.width + (newX - frame.maxX) - (self.thumbSize.width / 2)
-
-        UIView.animate(withDuration: 0.01) {
-            self.thumbImageView.center = CGPoint(x: newX, y: point.y)
-            self.progressMarkView.frame = frame
-        } completion: { _ in
-            self.queue.sync {
-                self._progress = frame.size.width / self.trackView.frame.width
-            }
+    override fileprivate func setSubviewsNewFrame() {
+        super.setSubviewsNewFrame()
+        guard self.selfFrame != .zero else {
+            return
         }
-    }
 
-    override open func setupSubviews() {
-        super.setupSubviews()
-        self.addSubview(self.progressPromptView)
-        self.addSubview(self.thumbImageView)
+        let frame = self.trackView.frame
+        let progressWidth = (frame.width - self.thumbSize.width) * self.progress
+        let progressMarkFrame = CGRect(x: 0, y: 0, width: progressWidth + self.thumbSize.width / 2, height: self.progressHeight)
+        self.progressMarkView.frame = progressMarkFrame
+        self.thumbImageView.bounds = CGRect(origin: .zero, size: self.thumbSize)
+        self.thumbImageView.center = CGPoint(x: progressMarkFrame.maxX, y: self.trackView.center.y)
+        self.setProgressPrompt()
     }
 
     override fileprivate func setDefault() {
@@ -395,28 +345,96 @@ open class DVTSlideView: DVTProgressView {
         self.thumbImageView.addGestureRecognizer(self.panGesture)
     }
 
-    override fileprivate func setSubviewsNewFrame() {
-        guard self.selfFrame != .zero else {
-            return
+    // MARK: Private
+    private lazy var thumbImageView: UIImageView = {
+        // MARK: Internal
+        let view = UIImageView()
+        view.isUserInteractionEnabled = true
+        view.contentMode = .scaleToFill
+        return view
+    }()
+
+    // MARK: - 进度比例提示
+
+    /// 进度比例提示控件
+    private lazy var progressPromptView: UIButton = {
+        let btn = UIButton(type: .custom)
+        btn.isHidden = true
+        btn.isUserInteractionEnabled = false
+        btn.titleLabel?.font = UIFont.dvt.regular(of: 15)
+        btn.titleEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 6, right: 0)
+        btn.setBackgroundImage(.image("bg_progress_prompt"), for: .normal)
+        btn.sizeToFit()
+        return btn
+    }()
+
+    // MARK: - 手势
+
+    private lazy var panGesture: UIPanGestureRecognizer = {
+        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(self.gestureRecognizer(_:)))
+        return panGesture
+    }()
+
+    private var oldPoint = CGPoint.zero
+
+    /// 进度提示控件设置
+    private func setProgressPrompt() {
+        self.progressPromptView.setTitle("\(Int(self._progress * 100))%", for: .normal)
+
+        self.configurationPrompt?(self.progressPromptView, self._progress)
+
+        let x = self.thumbImageView.frame.midX
+        let y = self.thumbImageView.frame.minY - self.progressPromptView.dvt.height / 2
+        self.progressPromptView.center = CGPoint(x: x, y: y)
+    }
+
+    @objc
+    private func gestureRecognizer(_ pan: UIPanGestureRecognizer) {
+        if pan.state == .began {
+            if self.isPrompt {
+                self.progressPromptView.isHidden = false
+            }
+            self.oldPoint = self.thumbImageView.center
+            self.thumbImageView.transform = CGAffineTransform(scaleX: 0.85, y: 0.85)
+            self.sliderCompletion?(.begin, self._progress)
+        }
+        if pan.state == .changed {
+            let offsetPoint = pan.translation(in: self)
+            let newX = self.oldPoint.x + offsetPoint.x
+            self.setThumbCenter(CGPoint(x: newX, y: self.oldPoint.y))
+            self.sliderCompletion?(.changed, self._progress)
         }
 
-        let frame = self.selfFrame
+        if pan.state == .ended {
+            if self.isPrompt {
+                self.progressPromptView.isHidden = true
+            }
+            self.thumbImageView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
+            self.sliderCompletion?(.ended, self._progress)
+        }
+    }
 
-        let trackX = self.thumbSize.width / 2
-        let trackY = frame.height - (self.thumbSize.height / 2)
+    private func setThumbCenter(_ point: CGPoint) {
+        let newX = min(max(point.x, self.thumbSize.width / 2), self.dvt.width - self.thumbSize.width / 2)
 
-        let trackFrame = CGRect(x: trackX, y: trackY, width: frame.width - self.thumbSize.width, height: self.progressHeight)
+        var frame = self.progressMarkView.frame
+        frame.size.width = newX
 
-        self.trackView.frame = trackFrame
-        let progressWidth = trackFrame.width * self._progress
+        UIView.animate(withDuration: 0.01) {
+            self.thumbImageView.center = CGPoint(x: newX, y: point.y)
+            self.progressMarkView.frame = frame
+        } completion: { _ in
+            self.queue.sync {
+                self._progress = (frame.size.width - self.thumbSize.width / 2) / (self.trackView.frame.width - self.thumbSize.width)
+            }
+        }
+    }
 
-        let progressMarkFrame = CGRect(x: 0, y: 0, width: progressWidth, height: self.progressHeight)
-        self.progressMarkView.frame = progressMarkFrame
-
-        self.progressView.frame = CGRect(origin: .zero, size: trackFrame.size)
-
-        self.thumbImageView.bounds = CGRect(origin: .zero, size: self.thumbSize)
-        self.thumbImageView.center = CGPoint(x: progressMarkFrame.maxX + trackX, y: trackY + self.progressHeight / 2)
-        self.setProgressPrompt()
+    private func updateThumbImage() {
+        var image: UIImage? = self.thumbImage ?? .image("icon_thumb")
+        if let color = self.thumbColor {
+            image = image?.dvt.image(tintColor: color)
+        }
+        self.thumbImageView.image = image
     }
 }

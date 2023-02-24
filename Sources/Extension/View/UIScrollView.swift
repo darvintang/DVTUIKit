@@ -31,34 +31,35 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
-fileprivate extension UIScrollView {
-    static var UIScrollView_hasSetInitialContentInsetKey: UInt8 = 0
+private extension UIScrollView {
+    static var UIScrollView_dvt_hasSetInitialContentInset_Key: UInt8 = 0
+    static var UIScrollView_dvt_initialContentInset_Key: UInt8 = 0
+
     var hasSetInitialContentInset: Bool {
         set {
-            objc_setAssociatedObject(self, &Self.UIScrollView_hasSetInitialContentInsetKey, newValue, .OBJC_ASSOCIATION_ASSIGN)
+            objc_setAssociatedObject(self, &Self.UIScrollView_dvt_hasSetInitialContentInset_Key, newValue, .OBJC_ASSOCIATION_ASSIGN)
         }
         get {
-            (objc_getAssociatedObject(self, &Self.UIScrollView_hasSetInitialContentInsetKey) as? Bool) ?? false
+            (objc_getAssociatedObject(self, &Self.UIScrollView_dvt_hasSetInitialContentInset_Key) as? Bool) ?? false
         }
     }
 
-    static var UIScrollView_InitialContentInsetKey: UInt8 = 0
     var initialContentInset: UIEdgeInsets {
         set {
-            objc_setAssociatedObject(self, &Self.UIScrollView_InitialContentInsetKey, newValue, .OBJC_ASSOCIATION_ASSIGN)
+            objc_setAssociatedObject(self, &Self.UIScrollView_dvt_initialContentInset_Key, newValue, .OBJC_ASSOCIATION_ASSIGN)
             self.contentInset = newValue
             self.scrollIndicatorInsets = newValue
         }
         get {
-            (objc_getAssociatedObject(self, &Self.UIScrollView_InitialContentInsetKey) as? UIEdgeInsets) ?? .zero
+            (objc_getAssociatedObject(self, &Self.UIScrollView_dvt_initialContentInset_Key) as? UIEdgeInsets) ?? .zero
         }
     }
 }
 
-extension BaseWrapper where BaseType: UIScrollView {
+public extension BaseWrapper where BaseType: UIScrollView {
     ///  判断UIScrollView是否已经处于顶部（当UIScrollView内容不够多不可滚动时，也认为是在顶部）
     var alreadyAtTop: Bool {
         false

@@ -31,8 +31,8 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
 #if canImport(DVTUIKit_Extension)
     import DVTUIKit_Extension
@@ -54,19 +54,17 @@ public extension DVTUINavigationBarStyleDelegate {
     var dvt_navigationBarShadowImage: UIImage? { DVTUINavigationBarStyle.default.dvt_navigationBarShadowImage }
 
     var dvt_navigationBarBackTitle: String? { DVTUINavigationBarStyle.default.dvt_navigationBarBackTitle }
-    func dvt_revealNavigationBarBackTitle(_ viewController: UIViewController) -> String? { nil }
-
     var dvt_backImage: UIImage? { DVTUINavigationBarStyle.default.dvt_backImage }
     var dvt_backImageColor: UIColor? { DVTUINavigationBarStyle.default.dvt_backImageColor }
+
+    func dvt_revealNavigationBarBackTitle(_ viewController: UIViewController) -> String? { nil }
 }
 
 extension BaseWrapper where BaseType == UIViewController {
     static func navigation_swizzleed() {
-        if BaseType.UIViewController_DVT_Swizzleed {
-            return
-        }
-        BaseType.swizzleSelector(#selector(BaseType.viewWillAppear(_:)), swizzle: #selector(BaseType.dvt_viewWillAppear(_:)))
-        BaseType.UIViewController_DVT_Swizzleed = true
+        if BaseType.UIViewController_navigation_swizzleed_flag { return }
+        defer { BaseType.UIViewController_navigation_swizzleed_flag = true }
+        BaseType.dvt_swizzleInstanceSelector(#selector(BaseType.viewWillAppear(_:)), swizzle: #selector(BaseType.dvt_viewWillAppear(_:)))
     }
 }
 
@@ -74,8 +72,8 @@ protocol DVTUINavigationBridgeDelegate: UINavigationController {
     func dvt_subVC_viewWillAppear(_ appear: UIViewController, animated: Bool)
 }
 
-fileprivate extension UIViewController {
-    static var UIViewController_DVT_Swizzleed = false
+private extension UIViewController {
+    static var UIViewController_navigation_swizzleed_flag = false
 
     @objc func dvt_viewWillAppear(_ animated: Bool) {
         self.dvt.renderNavigationBarStyle(animated)
@@ -98,17 +96,17 @@ public extension BaseWrapper where BaseType: UIViewController {
         self.base.dvt_navigationBarStyle
     }
 
-    func setNavigationBarStyle(_ style: DVTUINavigationBarStyle?) {
-        self.base.dvt_navigationBarStyle = style
-        self.base.dvt_navigationBarStyleModified = true
-    }
-
     var replaceNavigationBar: DVTTransitionNavigationBar? {
         self.base.dvt_replaceNavigationBar
     }
 
     var navigationBar: UINavigationBar? {
         self.base.navigationController?.navigationBar
+    }
+
+    func setNavigationBarStyle(_ style: DVTUINavigationBarStyle?) {
+        self.base.dvt_navigationBarStyle = style
+        self.base.dvt_navigationBarStyleModified = true
     }
 
     func showReplaceNavigationBar() {
@@ -180,43 +178,47 @@ public extension BaseWrapper where BaseType: UIViewController {
     }
 }
 
-fileprivate extension UIViewController {
-    private static var DVT_NavigationBarAppearanceKey: Int8 = 0
+private extension UIViewController {
+    // MARK: Internal
     var dvt_navigationBarStyle: DVTUINavigationBarStyle? {
         set {
-            objc_setAssociatedObject(self, &Self.DVT_NavigationBarAppearanceKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &Self.UIViewController_dvt_navigationBarStyle_Key, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
         get {
-            if let value = objc_getAssociatedObject(self, &Self.DVT_NavigationBarAppearanceKey) as? DVTUINavigationBarStyle {
+            if let value = objc_getAssociatedObject(self, &Self.UIViewController_dvt_navigationBarStyle_Key) as? DVTUINavigationBarStyle {
                 return value
             }
             if let barDelegate = self as? DVTUINavigationBarStyleDelegate {
                 let navigationBarStyle = DVTUINavigationBarStyle(barDelegate)
-                objc_setAssociatedObject(self, &Self.DVT_NavigationBarAppearanceKey, navigationBarStyle, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                objc_setAssociatedObject(self, &Self.UIViewController_dvt_navigationBarStyle_Key, navigationBarStyle, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
                 return navigationBarStyle
             }
             return nil
         }
     }
 
-    private static var DVT_NavigationBarStyleModifiedKey: Int8 = 0
     var dvt_navigationBarStyleModified: Bool {
         set {
-            objc_setAssociatedObject(self, &Self.DVT_NavigationBarStyleModifiedKey, newValue, .OBJC_ASSOCIATION_ASSIGN)
+            objc_setAssociatedObject(self, &Self.UIViewController_dvt_navigationBarStyleModified_Key, newValue, .OBJC_ASSOCIATION_ASSIGN)
         }
         get {
-            objc_getAssociatedObject(self, &Self.DVT_NavigationBarStyleModifiedKey) as? Bool ?? false
+            objc_getAssociatedObject(self, &Self.UIViewController_dvt_navigationBarStyleModified_Key) as? Bool ?? false
         }
     }
 
-    private static var DVT_ReplaceNavigationBarKey: Int8 = 0
     var dvt_replaceNavigationBar: DVTTransitionNavigationBar? {
         set {
             let weakContainer = DVTWeakObjectContainer(object: newValue)
-            objc_setAssociatedObject(self, &Self.DVT_ReplaceNavigationBarKey, weakContainer, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &Self.UIViewController_dvt_replaceNavigationBar_Key, weakContainer, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
         get {
-            (objc_getAssociatedObject(self, &Self.DVT_ReplaceNavigationBarKey) as? DVTWeakObjectContainer<DVTTransitionNavigationBar>)?.object as? DVTTransitionNavigationBar
+            (objc_getAssociatedObject(self, &Self.UIViewController_dvt_replaceNavigationBar_Key) as? DVTWeakObjectContainer<DVTTransitionNavigationBar>)?
+                .object as? DVTTransitionNavigationBar
         }
     }
+
+    // MARK: Private
+    private static var UIViewController_dvt_navigationBarStyle_Key: Int8 = 0
+    private static var UIViewController_dvt_navigationBarStyleModified_Key: Int8 = 0
+    private static var UIViewController_dvt_replaceNavigationBar_Key: Int8 = 0
 }

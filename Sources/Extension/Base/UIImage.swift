@@ -31,10 +31,10 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
-extension UIImage: NameSpace {}
+extension UIImage: NameSpace { }
 public extension BaseWrapper where BaseType: UIImage {
     @available(*, deprecated, renamed: "image(corner:cornerRadii:)", message: "2.0.1版本之后弃用该方法")
     func cornerRadius(corner: UIRectCorner = .allCorners, _ radius: CGFloat) -> UIImage? {
@@ -48,10 +48,20 @@ public extension BaseWrapper where BaseType: UIImage {
 }
 
 public extension BaseWrapper where BaseType: UIImage {
+    /// 图片里面的二维码
+    var qrCodes: [CIQRCodeFeature] {
+        guard let ciImage = CIImage(image: self.base),
+              let detector = CIDetector(ofType: CIDetectorTypeQRCode, context: nil, options: [CIDetectorAccuracy: CIDetectorAccuracyHigh]) else {
+            return []
+        }
+        let features = detector.features(in: ciImage)
+        return features.filter { $0.isKind(of: CIQRCodeFeature.self) }.compactMap { $0 as? CIQRCodeFeature }
+    }
+
     /// 图片绘制圆角
     /// - Parameters:
     ///   - corner: 圆角位置
-    ///   - radius: 圆角半径，会忽略小于1的圆角
+    ///   - radius: 圆角半径，会忽略小于1的圆角c
     /// - Returns: 绘制后的图片
     func image(corner: UIRectCorner = .allCorners, cornerRadii radius: CGFloat) -> UIImage? {
         if radius < 1 || corner.isEmpty {
@@ -117,7 +127,7 @@ public extension BaseWrapper where BaseType: UIImage {
         guard let cgImage = self.base.cgImage else {
             return nil
         }
-        var rotate: Double = 0.0
+        var rotate = 0.0
         var rect: CGRect
         var translateX: CGFloat = 0.0
         var translateY: CGFloat = 0.0
@@ -209,16 +219,7 @@ public extension BaseWrapper where BaseType: UIImage {
         return UIImage(cgImage: imagePartRef)
     }
 
-    /// 图片里面的二维码
-    var qrCodes: [CIQRCodeFeature] {
-        guard let ciImage = CIImage(image: self.base), let detector = CIDetector(ofType: CIDetectorTypeQRCode, context: nil, options: [CIDetectorAccuracy: CIDetectorAccuracyHigh]) else {
-            return []
-        }
-        let features = detector.features(in: ciImage)
-        return features.filter { $0.isKind(of: CIQRCodeFeature.self) }.compactMap { $0 as? CIQRCodeFeature }
-    }
-
-    // 获取二维码的图像区域，根据图片的倍率计算CGRect
+    /// 获取二维码的图像区域，根据图片的倍率计算CGRect
     func rect(_ feature: CIQRCodeFeature) -> CGRect {
         let scale = self.base.scale
         return feature.bounds.dvt.to(rate: 1 / scale)
@@ -263,7 +264,55 @@ public extension BaseWrapper where BaseType: UIImage {
 }
 
 public extension BaseWrapper where BaseType: UIImage {
-    static func image(_ size: CGSize, isOpaque: Bool = false, scale: CGFloat = UIScreen.main.scale, actions actionBlock: (_ contextRef: inout CGContext) -> Void) -> UIImage? {
+    var averageColor: UIColor? {
+        guard let cgImage = self.base.cgImage else { return nil }
+        var rgba: [UInt8] = [0, 0, 0, 0]
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let context = CGContext(data: &rgba, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4, space: colorSpace,
+                                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue + CGBitmapInfo.byteOrder32Big.rawValue)
+        context?.draw(cgImage, in: CGRect(origin: .zero, size: CGSize(width: 1, height: 1)))
+
+        if rgba[3] > 0 {
+            return UIColor(red: CGFloat(rgba[0]) / CGFloat(rgba[3]), green: CGFloat(rgba[1]) / CGFloat(rgba[3]), blue: CGFloat(rgba[2]) / CGFloat(rgba[3]),
+                           alpha: CGFloat(rgba[3]) / 255)
+        } else {
+            return UIColor(red: CGFloat(rgba[0]) / 255, green: CGFloat(rgba[1]) / 255, blue: CGFloat(rgba[2]) / 255, alpha: CGFloat(rgba[3]) / 255)
+        }
+    }
+
+    /// 置灰后的图片
+    var gray: UIImage? {
+        guard let cgImage = self.base.cgImage else {
+            return nil
+        }
+        let size = self.sizeInPixel
+        let colorSpace = CGColorSpaceCreateDeviceGray()
+        let context = CGContext(data: nil, width: Int(size.width), height: Int(size.height), bitsPerComponent: 8, bytesPerRow: 0, space: colorSpace,
+                                bitmapInfo: CGBitmapInfo.byteOrderDefault.rawValue)
+        context?.draw(cgImage, in: CGRect(origin: .zero, size: size))
+        context?.makeImage()
+        var grayImage: UIImage?
+        guard let imageRef = context?.makeImage() else {
+            return nil
+        }
+        if self.isOpaque {
+            grayImage = UIImage(cgImage: imageRef, scale: self.base.scale, orientation: self.base.imageOrientation)
+        } else {
+            let alphaContext = CGContext(data: nil, width: Int(size.width), height: Int(size.height), bitsPerComponent: 8, bytesPerRow: 0, space: colorSpace,
+                                         bitmapInfo: CGImageAlphaInfo.alphaOnly.rawValue)
+            alphaContext?.draw(cgImage, in: CGRect(origin: .zero, size: size))
+            if let mask = alphaContext?.makeImage(), let maskedGrayImageRef = imageRef.masking(mask) {
+                grayImage = UIImage(cgImage: maskedGrayImageRef, scale: self.base.scale, orientation: self.base.imageOrientation)
+                grayImage = Self.image(grayImage?.size ?? size, isOpaque: false, scale: grayImage?.scale ?? self.base.scale, actions: { _ in
+                    grayImage?.draw(in: CGRect(origin: .zero, size: grayImage?.size ?? size))
+                })
+            }
+        }
+        return grayImage
+    }
+
+    static func image(_ size: CGSize, isOpaque: Bool = false, scale: CGFloat = UIScreen.main.scale,
+                      actions actionBlock: (_ contextRef: inout CGContext) -> Void) -> UIImage? {
         if size.dvt.isEmpty {
             return nil
         }
@@ -280,49 +329,6 @@ public extension BaseWrapper where BaseType: UIImage {
             actionBlock(&context)
             context.restoreGState()
         })
-    }
-
-    var averageColor: UIColor? {
-        guard let cgImage = self.base.cgImage else { return nil }
-        var rgba: [UInt8] = [0, 0, 0, 0]
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
-        let context = CGContext(data: &rgba, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4, space: colorSpace, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue + CGBitmapInfo.byteOrder32Big.rawValue)
-        context?.draw(cgImage, in: CGRect(origin: .zero, size: CGSize(width: 1, height: 1)))
-
-        if rgba[3] > 0 {
-            return UIColor(red: CGFloat(rgba[0]) / CGFloat(rgba[3]), green: CGFloat(rgba[1]) / CGFloat(rgba[3]), blue: CGFloat(rgba[2]) / CGFloat(rgba[3]), alpha: CGFloat(rgba[3]) / 255)
-        } else {
-            return UIColor(red: CGFloat(rgba[0]) / 255, green: CGFloat(rgba[1]) / 255, blue: CGFloat(rgba[2]) / 255, alpha: CGFloat(rgba[3]) / 255)
-        }
-    }
-
-    /// 置灰后的图片
-    var gray: UIImage? {
-        guard let cgImage = self.base.cgImage else {
-            return nil
-        }
-        let size = self.sizeInPixel
-        let colorSpace = CGColorSpaceCreateDeviceGray()
-        let context = CGContext(data: nil, width: Int(size.width), height: Int(size.height), bitsPerComponent: 8, bytesPerRow: 0, space: colorSpace, bitmapInfo: CGBitmapInfo.byteOrderDefault.rawValue)
-        context?.draw(cgImage, in: CGRect(origin: .zero, size: size))
-        context?.makeImage()
-        var grayImage: UIImage?
-        guard let imageRef = context?.makeImage() else {
-            return nil
-        }
-        if self.isOpaque {
-            grayImage = UIImage(cgImage: imageRef, scale: self.base.scale, orientation: self.base.imageOrientation)
-        } else {
-            let alphaContext = CGContext(data: nil, width: Int(size.width), height: Int(size.height), bitsPerComponent: 8, bytesPerRow: 0, space: colorSpace, bitmapInfo: CGImageAlphaInfo.alphaOnly.rawValue)
-            alphaContext?.draw(cgImage, in: CGRect(origin: .zero, size: size))
-            if let mask = alphaContext?.makeImage(), let maskedGrayImageRef = imageRef.masking(mask) {
-                grayImage = UIImage(cgImage: maskedGrayImageRef, scale: self.base.scale, orientation: self.base.imageOrientation)
-                grayImage = Self.image(grayImage?.size ?? size, isOpaque: false, scale: grayImage?.scale ?? self.base.scale, actions: { _ in
-                    grayImage?.draw(in: CGRect(origin: .zero, size: grayImage?.size ?? size))
-                })
-            }
-        }
-        return grayImage
     }
 
     /// 获取一张修改透明度后的图片
@@ -423,10 +429,7 @@ public extension UIImage {
 // MARK: - 通过颜色初始化渐变图片
 
 public extension UIImage {
-    enum GraphicDirection {
-        case left2right, top2bottom, leftTop2rightBottom, leftBottom2rightTop
-    }
-
+    // MARK: Lifecycle
     /// 创建一张渐变的图片
     /// - Parameters:
     ///   - colors: 渐变颜色数组
@@ -465,7 +468,7 @@ public extension UIImage {
                 locations.append(num)
             }
             let gradientLayer = CAGradientLayer()
-            gradientLayer.colors = colors.map({ $0.cgColor })
+            gradientLayer.colors = colors.map { $0.cgColor }
             gradientLayer.locations = locations
             gradientLayer.startPoint = startPoint
             gradientLayer.endPoint = endPoint
@@ -477,6 +480,11 @@ public extension UIImage {
                 return nil
             }
         }
+    }
+
+    // MARK: Internal
+    enum GraphicDirection {
+        case left2right, top2bottom, leftTop2rightBottom, leftBottom2rightTop
     }
 }
 

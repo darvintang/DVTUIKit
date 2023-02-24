@@ -31,8 +31,8 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
 extension UIEdgeInsets: NameSpace { }
 
@@ -48,6 +48,7 @@ public extension BaseWrapper where BaseType == UIEdgeInsets {
     }
 
     func insetsConcat(_ insets: UIEdgeInsets) -> UIEdgeInsets {
-        UIEdgeInsets(top: self.base.top + insets.top, left: self.base.left + insets.left, bottom: self.base.bottom + insets.bottom, right: self.base.right + insets.right)
+        UIEdgeInsets(top: self.base.top + insets.top, left: self.base.left + insets.left, bottom: self.base.bottom + insets.bottom,
+                     right: self.base.right + insets.right)
     }
 }

@@ -31,10 +31,10 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
-extension UIFont: NameSpace {}
+extension UIFont: NameSpace { }
 
 public extension BaseWrapper where BaseType == UIFont {
     static func ultraLight(of fontSize: CGFloat) -> UIFont { .systemFont(ofSize: fontSize, weight: .ultraLight) }

@@ -46,12 +46,11 @@ open class BaseCollectionReusableView: UICollectionReusableView {
 
     open func didInitialize() {
         self.setupSubviews()
+        self.makeLayoutSubviews()
         self.makeSubViewsConstraints()
     }
 
-    open func setupSubviews() {
-    }
-
-    open func makeSubViewsConstraints() {
-    }
+    open func setupSubviews() { }
+    open func makeLayoutSubviews() { }
+    open func makeSubViewsConstraints() { }
 }

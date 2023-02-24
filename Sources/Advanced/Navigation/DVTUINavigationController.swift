@@ -31,15 +31,15 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
 #if canImport(DVTUIKit_Extension)
     import DVTUIKit_Extension
 #endif
 
-fileprivate extension BaseWrapper where BaseType: UIView {
-    // 拦截点击导航栏返回按钮pop事件
+private extension BaseWrapper where BaseType: UIView {
+    /// 拦截点击导航栏返回按钮pop事件
     static func exchangeNavigationBarContentView() {
         guard let cls = NSClassFromString("_" + "UINavigationBar" + "ContentView"), !BaseType.ExchangeNavigationBarContentViewFlag else {
             return
@@ -54,10 +54,12 @@ fileprivate extension BaseWrapper where BaseType: UIView {
     }
 }
 
-fileprivate extension UIView {
+private extension UIView {
     static var ExchangeNavigationBarContentViewFlag = false
+
     /// 点击导航栏返回按钮的操作
-    @objc func dvt__backButton(_ action: UIButton?) {
+    @objc
+    func dvt__backButton(_ action: UIButton?) {
         if let bar = self.superview as? DVTTransitionNavigationBar, let navVC = bar.delegate as? DVTUINavigationController {
             if !navVC.canPop(navVC.topViewController, by: false) {
                 return
@@ -68,31 +70,34 @@ fileprivate extension UIView {
 }
 
 private class DVTUINavigationControllerGestureDelegateContainer: NSObject, UIGestureRecognizerDelegate {
-    weak var viewController: DVTUINavigationController?
+    // MARK: Lifecycle
     convenience init(_ viewController: DVTUINavigationController) {
         self.init()
         self.viewController = viewController
     }
 
-//      // 这部分代码来源于QMUIKit UINavigationController+QMUI.m，处理添加`leftBarButtonItem`之后的手势返回
-//      // 不方便测试，所以忽略iOS16以下系统添加`leftBarButtonItem`后手势失效问题
-//    @objc func _gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceiveEvent event: UIEvent) -> Bool {
-//        if gestureRecognizer == self.viewController?.interactivePopGestureRecognizer {
-//            if let odelegate = self.viewController?.interactivePopGestureRecognizerDelegate {
-//                let sel = NSSelectorFromString("_gestureRecognizer:shouldReceiveEvent:")
-//                if odelegate.responds(to: sel) {
-//                    print(odelegate.perform(sel, with: gestureRecognizer, with: event))
-//                    let value = odelegate.perform(sel, with: gestureRecognizer, with: event)?.takeUnretainedValue() as? Bool ?? true
-//                    if !value {
-//                        // `UINavigationController`添加`leftBarButtonItem`之后，在这里返回`true`，可以恢复系统的返回手势
-//                    }
-//                    return value
-//                }
-//            }
-//        }
-//        return true
-//    }
-//
+    // MARK: Internal
+    weak var viewController: DVTUINavigationController?
+
+    ///      // 这部分代码来源于QMUIKit UINavigationController+QMUI.m，处理添加`leftBarButtonItem`之后的手势返回
+    ///      // 不方便测试，所以忽略iOS16以下系统添加`leftBarButtonItem`后手势失效问题
+    ///    @objc func _gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceiveEvent event: UIEvent) -> Bool {
+    ///        if gestureRecognizer == self.viewController?.interactivePopGestureRecognizer {
+    ///            if let odelegate = self.viewController?.interactivePopGestureRecognizerDelegate {
+    ///                let sel = NSSelectorFromString("_gestureRecognizer:shouldReceiveEvent:")
+    ///                if odelegate.responds(to: sel) {
+    ///                    print(odelegate.perform(sel, with: gestureRecognizer, with: event))
+    ///                    let value = odelegate.perform(sel, with: gestureRecognizer, with: event)?.takeUnretainedValue() as? Bool ?? true
+    ///                    if !value {
+    ///                        // `UINavigationController`添加`leftBarButtonItem`之后，在这里返回`true`，可以恢复系统的返回手势
+    ///                    }
+    ///                    return value
+    ///                }
+    ///            }
+    ///        }
+    ///        return true
+    ///    }
+    ///
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         if gestureRecognizer == self.viewController?.interactivePopGestureRecognizer {
             if let odelegate = self.viewController?.interactivePopGestureRecognizerDelegate {
@@ -102,7 +107,7 @@ private class DVTUINavigationControllerGestureDelegateContainer: NSObject, UIGes
         return true
     }
 
-    // 在这里拦截返回手势和按钮点击
+    /// 在这里拦截返回手势和按钮点击
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
         if gestureRecognizer == self.viewController?.interactivePopGestureRecognizer {
             if self.viewController?.canPop(self.viewController?.topViewController, by: true) ?? false {
@@ -154,130 +159,7 @@ extension DVTUINavigationController: DVTUINavigationBridgeDelegate {
 }
 
 open class DVTUINavigationController: UINavigationController, UIGestureRecognizerDelegate, UINavigationControllerDelegate {
-    private enum DVTNavigationActionState {
-        case unknow // 初始、各种动作的 completed 之后都会立即转入 unknown 状态，此时的 appearing、disappearingViewController 均为 nil
-
-        case willPush // push 方法被触发，但尚未进行真正的 push 动作
-        case didPush // 系统的 push 已经执行完，viewControllers 已被刷新
-        case pushCompleted // push 动画结束（如果没有动画，则在 did push 后立即进入 completed）
-
-        case willPop // pop 方法被触发，但尚未进行真正的 pop 动作
-        case didPop // 系统的 pop 已经执行完，viewControllers 已被刷新（注意可能有 pop 失败的情况）
-        case popCompleted // pop 动画结束（如果没有动画，则在 did pop 后立即进入 completed）
-
-        case willSet // setViewControllers 方法被触发，但尚未进行真正的 set 动作
-        case didSet // 系统的 setViewControllers 已经执行完，viewControllers 已被刷新
-        case setCompleted // setViewControllers 动画结束（如果没有动画，则在 did set 后立即进入 completed）
-    }
-
-    private weak var disappearingVC: UIViewController?
-    private weak var appearingVC: UIViewController?
-    private weak var dvt_delegate: UINavigationControllerDelegate?
-    private var popGestureRecognizerDelegate: DVTUINavigationControllerGestureDelegateContainer?
-    fileprivate weak var interactivePopGestureRecognizerDelegate: UIGestureRecognizerDelegate?
-
-    /// 更新导航栏返回按钮的标题
-    /// - Parameters:
-    ///   - before: 上一级控制器
-    ///   - appear: 当前显示的控制器
-    private func updateNavigationBarBackButtonTitle() {
-        guard let before = self.disappearingVC else { return }
-        var title = DVTUINavigationBarStyle.default.dvt_navigationBarBackTitle
-
-        if let fromVCStyle = before as? DVTUINavigationBarStyleDelegate, let temp = fromVCStyle.dvt_navigationBarBackTitle {
-            title = temp
-        }
-
-        if let barStyle = self.appearingVC as? DVTUINavigationBarStyleDelegate, let temp = barStyle.dvt_revealNavigationBarBackTitle(before) {
-            title = temp
-        }
-
-        before.navigationItem.backButtonTitle = title
-        if #available(iOS 14.0, *) {
-            if title?.isEmpty ?? false {
-                before.navigationItem.backButtonDisplayMode = .minimal
-            } else {
-                before.navigationItem.backButtonDisplayMode = .default
-            }
-        }
-    }
-
-    /// 更新替换的导航栏
-    /// - Parameter isShow: 显示状态
-    private func updateReplaceNavigationBar(_ isShow: Bool) {
-        guard isShow else {
-            self.navigationBar.dvt.resetBackground()
-            self.disappearingVC?.dvt.hideReplaceNavigationBar()
-            self.appearingVC?.dvt.hideReplaceNavigationBar()
-            return
-        }
-
-        guard let fromVCStyle = self.disappearingVC?.dvt.navigationBarStyle,
-              let toVCStyle = self.appearingVC?.dvt.navigationBarStyle else {
-            return
-        }
-
-        // 如果左右两个都隐藏，那就不显示假的
-        guard fromVCStyle.dvt_navigationBarHidden == false || toVCStyle.dvt_navigationBarHidden == false else {
-            return
-        }
-        if self.isPushing, let appearingStyleDelegate = self.appearingVC as? DVTUINavigationBarStyleDelegate {
-            // 当Push到下一级页面导航栏是隐藏的时候真导航栏会提前变色渲染，所以需要显示假的
-            if appearingStyleDelegate.dvt_navigationBarHidden, !self.navigationBar.isHidden {
-                self.disappearingVC?.dvt.showReplaceNavigationBar()
-                self.navigationBar.dvt.removeBackground()
-                return
-            }
-        }
-        if self.isPopping, let appearingStyleDelegate = self.appearingVC as? DVTUINavigationBarStyleDelegate {
-            // 当Pop到下一级页面导航栏是隐藏的时候真导航栏会提前变色渲染，所以需要显示假的
-            if appearingStyleDelegate.dvt_navigationBarHidden, !self.navigationBar.isHidden {
-                self.disappearingVC?.dvt.showReplaceNavigationBar()
-                self.navigationBar.dvt.removeBackground()
-                return
-            }
-        }
-
-        // 图片优先，先判断图片，没有图片则判断颜色。如果两个都是颜色并且都不为透明的，沿用系统的变色，否则显示假的，隐藏真的
-        guard fromVCStyle.dvt_navigationBarBackgroundImage != nil ||
-            toVCStyle.dvt_navigationBarBackgroundImage != nil ||
-            fromVCStyle.dvt_navigationBarBackgroundColor == nil ||
-            toVCStyle.dvt_navigationBarBackgroundColor == nil ||
-            fromVCStyle.dvt_navigationBarBackgroundColor == .clear ||
-            toVCStyle.dvt_navigationBarBackgroundColor == .clear else {
-            return
-        }
-        // 这个时候需要处理显示假控制器
-        self.disappearingVC?.dvt.showReplaceNavigationBar()
-        self.appearingVC?.dvt.showReplaceNavigationBar()
-        self.navigationBar.dvt.removeBackground()
-    }
-
-    /// 是否可以pop到上一级界面，点击返回按钮/手势
-    /// - Parameters:
-    ///   - viewController: 需要pop的控制器
-    ///   - PopGesture: 是否是手势
-    /// - Returns: 是否允许
-    fileprivate func canPop(_ viewController: UIViewController?, by PopGesture: Bool) -> Bool {
-        if let delegate = viewController as? DVTUINavigationControllerPopAndBackButtonHandlerDelegate {
-            return delegate.dvt_shouldPopViewController(by: PopGesture)
-        }
-        return true
-    }
-
-    /// navigation操作状态
-    private var actionState: DVTNavigationActionState = .unknow {
-        didSet {
-            switch self.actionState {
-                case .didPush, .willSet, .willPop:
-                    self.updateReplaceNavigationBar(true)
-                case .pushCompleted, .popCompleted, .setCompleted:
-                    self.updateReplaceNavigationBar(false)
-                default: break
-            }
-        }
-    }
-
+    // MARK: Lifecycle
     override public init(rootViewController: UIViewController) {
         super.init(navigationBarClass: DVTTransitionNavigationBar.classForCoder(), toolbarClass: nil)
         self.viewControllers = [rootViewController]
@@ -288,7 +170,7 @@ open class DVTUINavigationController: UINavigationController, UIGestureRecognize
         if let cls = navigationBarClass as? DVTTransitionNavigationBar.Type {
             super.init(navigationBarClass: cls.self, toolbarClass: toolbarClass)
         } else {
-            dvtuiloger.error("仅支持继承于DVTTransitionNavigationBar的类")
+            dvtuiloger.error("仅支持DVTTransitionNavigationBar或继承它的类")
             super.init(navigationBarClass: DVTTransitionNavigationBar.self, toolbarClass: toolbarClass)
         }
 
@@ -308,8 +190,35 @@ open class DVTUINavigationController: UINavigationController, UIGestureRecognize
     open func didInitialize() {
         UIViewController.dvt.navigation_swizzleed()
         UIView.dvt.exchangeNavigationBarContentView()
+        if !(self.navigationBar is DVTTransitionNavigationBar) {
+            dvtuiloger.error("仅支持DVTTransitionNavigationBar或继承它的类")
+        }
     }
 
+    override open func viewDidLoad() {
+        super.viewDidLoad()
+        self.delegate = self
+        self.interactivePopGestureRecognizerDelegate = self.interactivePopGestureRecognizer?.delegate
+        let gestureDelegateContainer = DVTUINavigationControllerGestureDelegateContainer(self)
+        self.interactivePopGestureRecognizer?.delegate = gestureDelegateContainer
+        self.popGestureRecognizerDelegate = gestureDelegateContainer
+    }
+
+    override open func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        if let topVC = self.topViewController {
+            self.navigationController(self, willShow: topVC, animated: animated)
+        }
+    }
+
+    override open func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if let topVC = self.topViewController {
+            self.navigationController(self, didShow: topVC, animated: animated)
+        }
+    }
+
+    // MARK: Open
     override open var delegate: UINavigationControllerDelegate? {
         didSet {
             if let value = self.delegate as? DVTUINavigationController, value != self {
@@ -335,21 +244,20 @@ open class DVTUINavigationController: UINavigationController, UIGestureRecognize
         }
     }
 
-    public var isPopping: Bool {
-        self.actionState == .willPop || self.actionState == .didPop || self.actionState == .popCompleted
+    override open var shouldAutorotate: Bool {
+        self.topViewController?.shouldAutorotate ?? super.shouldAutorotate
     }
 
-    public var isPushing: Bool {
-        self.actionState == .didPush || self.actionState == .pushCompleted
+    override open var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        self.topViewController?.supportedInterfaceOrientations ?? super.supportedInterfaceOrientations
     }
 
-    override open func viewDidLoad() {
-        super.viewDidLoad()
-        self.delegate = self
-        self.interactivePopGestureRecognizerDelegate = self.interactivePopGestureRecognizer?.delegate
-        let gestureDelegateContainer = DVTUINavigationControllerGestureDelegateContainer(self)
-        self.interactivePopGestureRecognizer?.delegate = gestureDelegateContainer
-        self.popGestureRecognizerDelegate = gestureDelegateContainer
+    override open var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
+        self.topViewController?.preferredInterfaceOrientationForPresentation ?? super.preferredInterfaceOrientationForPresentation
+    }
+
+    override open var preferredStatusBarStyle: UIStatusBarStyle {
+        self.topViewController?.preferredStatusBarStyle ?? super.preferredStatusBarStyle
     }
 
     override open func setViewControllers(_ viewControllers: [UIViewController], animated: Bool) {
@@ -372,20 +280,6 @@ open class DVTUINavigationController: UINavigationController, UIGestureRecognize
         self.dvt.animateAlongsideTransition { [weak self] _ in
             self?.actionState = .setCompleted
             self?.actionState = .unknow
-        }
-    }
-
-    override open func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        if let topVC = self.topViewController {
-            self.navigationController(self, willShow: topVC, animated: animated)
-        }
-    }
-
-    override open func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        if let topVC = self.topViewController {
-            self.navigationController(self, didShow: topVC, animated: animated)
         }
     }
 
@@ -483,22 +377,6 @@ open class DVTUINavigationController: UINavigationController, UIGestureRecognize
         return viewControllers
     }
 
-    override open var shouldAutorotate: Bool {
-        self.topViewController?.shouldAutorotate ?? super.shouldAutorotate
-    }
-
-    override open var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        self.topViewController?.supportedInterfaceOrientations ?? super.supportedInterfaceOrientations
-    }
-
-    override open var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
-        self.topViewController?.preferredInterfaceOrientationForPresentation ?? super.preferredInterfaceOrientationForPresentation
-    }
-
-    override open var preferredStatusBarStyle: UIStatusBarStyle {
-        self.topViewController?.preferredStatusBarStyle ?? super.preferredStatusBarStyle
-    }
-
     open func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
         self.dvt_delegate?.navigationController?(navigationController, willShow: viewController, animated: animated)
     }
@@ -515,11 +393,149 @@ open class DVTUINavigationController: UINavigationController, UIGestureRecognize
         return self.dvt_delegate?.navigationControllerPreferredInterfaceOrientationForPresentation?(navigationController) ?? .portrait
     }
 
-    open func navigationController(_ navigationController: UINavigationController, interactionControllerFor animationController: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
+    open func navigationController(_ navigationController: UINavigationController,
+                                   interactionControllerFor animationController: UIViewControllerAnimatedTransitioning)
+    -> UIViewControllerInteractiveTransitioning? {
         return self.dvt_delegate?.navigationController?(navigationController, interactionControllerFor: animationController)
     }
 
-    open func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationController.Operation, from fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+    open func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationController.Operation,
+                                   from fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         return self.dvt_delegate?.navigationController?(navigationController, animationControllerFor: operation, from: fromVC, to: toVC)
+    }
+
+    // MARK: Public
+    public var isPopping: Bool {
+        self.actionState == .willPop || self.actionState == .didPop || self.actionState == .popCompleted
+    }
+
+    public var isPushing: Bool {
+        self.actionState == .didPush || self.actionState == .pushCompleted
+    }
+
+    // MARK: Fileprivate
+    fileprivate weak var interactivePopGestureRecognizerDelegate: UIGestureRecognizerDelegate?
+
+    /// 是否可以pop到上一级界面，点击返回按钮/手势
+    /// - Parameters:
+    ///   - viewController: 需要pop的控制器
+    ///   - PopGesture: 是否是手势
+    /// - Returns: 是否允许
+    fileprivate func canPop(_ viewController: UIViewController?, by PopGesture: Bool) -> Bool {
+        if let delegate = viewController as? DVTUINavigationControllerPopAndBackButtonHandlerDelegate {
+            return delegate.dvt_shouldPopViewController(by: PopGesture)
+        }
+        return true
+    }
+
+    // MARK: Private
+    private enum DVTNavigationActionState {
+        case unknow // 初始、各种动作的 completed 之后都会立即转入 unknown 状态，此时的 appearing、disappearingViewController 均为 nil
+
+        case willPush // push 方法被触发，但尚未进行真正的 push 动作
+        case didPush // 系统的 push 已经执行完，viewControllers 已被刷新
+        case pushCompleted // push 动画结束（如果没有动画，则在 did push 后立即进入 completed）
+
+        case willPop // pop 方法被触发，但尚未进行真正的 pop 动作
+        case didPop // 系统的 pop 已经执行完，viewControllers 已被刷新（注意可能有 pop 失败的情况）
+        case popCompleted // pop 动画结束（如果没有动画，则在 did pop 后立即进入 completed）
+
+        case willSet // setViewControllers 方法被触发，但尚未进行真正的 set 动作
+        case didSet // 系统的 setViewControllers 已经执行完，viewControllers 已被刷新
+        case setCompleted // setViewControllers 动画结束（如果没有动画，则在 did set 后立即进入 completed）
+    }
+
+    private weak var disappearingVC: UIViewController?
+    private weak var appearingVC: UIViewController?
+    private weak var dvt_delegate: UINavigationControllerDelegate?
+    private var popGestureRecognizerDelegate: DVTUINavigationControllerGestureDelegateContainer?
+
+    /// navigation操作状态
+    private var actionState: DVTNavigationActionState = .unknow {
+        didSet {
+            switch self.actionState {
+                case .didPush, .willPop, .willSet:  self.updateReplaceNavigationBar(true)
+                case .popCompleted, .pushCompleted, .setCompleted:
+                    self.updateReplaceNavigationBar(false)
+                default: break
+            }
+        }
+    }
+
+    /// 更新导航栏返回按钮的标题
+    /// - Parameters:
+    ///   - before: 上一级控制器
+    ///   - appear: 当前显示的控制器
+    private func updateNavigationBarBackButtonTitle() {
+        guard let before = self.disappearingVC else { return }
+        var title = DVTUINavigationBarStyle.default.dvt_navigationBarBackTitle
+
+        if let fromVCStyle = before as? DVTUINavigationBarStyleDelegate, let temp = fromVCStyle.dvt_navigationBarBackTitle {
+            title = temp
+        }
+
+        if let barStyle = self.appearingVC as? DVTUINavigationBarStyleDelegate, let temp = barStyle.dvt_revealNavigationBarBackTitle(before) {
+            title = temp
+        }
+
+        before.navigationItem.backButtonTitle = title
+        if #available(iOS 14.0, *) {
+            if title?.isEmpty ?? false {
+                before.navigationItem.backButtonDisplayMode = .minimal
+            } else {
+                before.navigationItem.backButtonDisplayMode = .default
+            }
+        }
+    }
+
+    /// 更新替换的导航栏
+    /// - Parameter isShow: 显示状态
+    private func updateReplaceNavigationBar(_ isShow: Bool) {
+        guard isShow else {
+            self.navigationBar.dvt.resetBackground()
+            self.disappearingVC?.dvt.hideReplaceNavigationBar()
+            self.appearingVC?.dvt.hideReplaceNavigationBar()
+            return
+        }
+
+        guard let fromVCStyle = self.disappearingVC?.dvt.navigationBarStyle,
+              let toVCStyle = self.appearingVC?.dvt.navigationBarStyle else {
+            return
+        }
+
+        // 如果左右两个都隐藏，那就不显示假的
+        guard fromVCStyle.dvt_navigationBarHidden == false || toVCStyle.dvt_navigationBarHidden == false else {
+            return
+        }
+        if self.isPushing, let appearingStyleDelegate = self.appearingVC as? DVTUINavigationBarStyleDelegate {
+            // 当Push到下一级页面导航栏是隐藏的时候真导航栏会提前变色渲染，所以需要显示假的
+            if appearingStyleDelegate.dvt_navigationBarHidden, !self.navigationBar.isHidden {
+                self.disappearingVC?.dvt.showReplaceNavigationBar()
+                self.navigationBar.dvt.removeBackground()
+                return
+            }
+        }
+        if self.isPopping, let appearingStyleDelegate = self.appearingVC as? DVTUINavigationBarStyleDelegate {
+            // 当Pop到下一级页面导航栏是隐藏的时候真导航栏会提前变色渲染，所以需要显示假的
+            if appearingStyleDelegate.dvt_navigationBarHidden, !self.navigationBar.isHidden {
+                self.disappearingVC?.dvt.showReplaceNavigationBar()
+                self.navigationBar.dvt.removeBackground()
+                return
+            }
+        }
+
+        // 图片优先，先判断图片，没有图片则判断颜色。如果两个都是颜色并且都不为透明的，沿用系统的变色，否则显示假的，隐藏真的
+        guard fromVCStyle.dvt_navigationBarBackgroundImage != nil ||
+            toVCStyle.dvt_navigationBarBackgroundImage != nil ||
+            fromVCStyle.dvt_navigationBarBackgroundColor == nil ||
+            toVCStyle.dvt_navigationBarBackgroundColor == nil ||
+            fromVCStyle.dvt_navigationBarBackgroundColor == .clear ||
+            toVCStyle.dvt_navigationBarBackgroundColor == .clear else {
+            return
+        }
+        // 这个时候需要处理显示假控制器
+        self.disappearingVC?.dvt.showReplaceNavigationBar()
+        self.appearingVC?.dvt.showReplaceNavigationBar()
+        self.navigationBar.dvt.removeBackground()
     }
 }

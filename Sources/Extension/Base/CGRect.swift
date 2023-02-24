@@ -31,18 +31,13 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
-extension CGRect: NameSpace {}
+extension CGRect: NameSpace { }
 public extension BaseWrapper where BaseType == CGRect {
     static var screenBounds: CGRect {
         return UIScreen.main.bounds
-    }
-
-    /// 按比例计算新的
-    func to(rate scale: CGFloat) -> CGRect {
-        CGRect(x: self.base.origin.x * scale, y: self.base.origin.y * scale, width: self.base.size.width * scale, height: self.base.size.height * scale)
     }
 
     /// 交换XY之后的结果
@@ -60,6 +55,20 @@ public extension BaseWrapper where BaseType == CGRect {
 
     var y: CGFloat {
         self.base.origin.y
+    }
+
+    /// 基于当前设备的屏幕倍数，进行像素取整。
+    var flat: CGRect {
+        CGRect(x: self.x.dvt.flat, y: self.y.dvt.flat, width: self.base.width.dvt.flat, height: self.base.height.dvt.flat)
+    }
+
+    var isEmpty: Bool {
+        self.base.size.dvt.isEmpty
+    }
+
+    /// 按比例计算新的
+    func to(rate scale: CGFloat) -> CGRect {
+        CGRect(x: self.base.origin.x * scale, y: self.base.origin.y * scale, width: self.base.size.width * scale, height: self.base.size.height * scale)
     }
 
     /// 边界转换
@@ -86,7 +95,7 @@ public extension BaseWrapper where BaseType == CGRect {
             case .center:
                 break
             case .scaleToFill:
-                // 变形，单独计算
+                /// 变形，单独计算
                 let scalew = showSize.width / oldSize.width
                 let scaleh = showSize.height / oldSize.height
                 return CGRect(x: rect.dvt.x * scalew, y: rect.dvt.y * scaleh, width: rect.width * scalew, height: rect.height * scaleh)
@@ -152,8 +161,27 @@ public extension BaseWrapper where BaseType == CGRect {
         return rect
     }
 
-    /// 基于当前设备的屏幕倍数，进行像素取整。
-    var flat: CGRect {
-        CGRect(x: self.x.dvt.flat, y: self.y.dvt.flat, width: self.base.width.dvt.flat, height: self.base.height.dvt.flat)
+    func setX(_ x: CGFloat) -> CGRect {
+        var rect = self.base
+        rect.origin.x = x
+        return rect
+    }
+
+    func setY(_ x: CGFloat) -> CGRect {
+        var rect = self.base
+        rect.origin.y = y
+        return rect
+    }
+
+    func setOrigin(_ origin: CGPoint) -> CGRect {
+        var rect = self.base
+        rect.origin = origin
+        return rect
+    }
+
+    func setSize(_ size: CGSize) -> CGRect {
+        var rect = self.base
+        rect.size = size
+        return rect
     }
 }

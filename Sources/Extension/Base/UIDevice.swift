@@ -31,10 +31,10 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
-extension UIDevice: NameSpace {}
+extension UIDevice: NameSpace { }
 
 public extension BaseWrapper where BaseType == UIDevice {
     var model: String {

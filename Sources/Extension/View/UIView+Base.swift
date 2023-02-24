@@ -31,19 +31,22 @@
 
  */
 
-import DVTFoundation
-import ObjectiveC
 import UIKit
+import ObjectiveC
+import DVTFoundation
 
-extension UIView: NameSpace {
-    static var UIView_dvt_viewControllerKey: UInt8 = 0
-    fileprivate var dvt_viewController: UIViewController? {
+extension UIView: NameSpace { }
+
+private extension UIView {
+    static var UIView_Extension_dvt_viewController_Key: UInt8 = 0
+
+    var dvt_viewController: UIViewController? {
         set {
             let container = DVTWeakObjectContainer(object: newValue)
-            objc_setAssociatedObject(self, &Self.UIView_dvt_viewControllerKey, container, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &Self.UIView_Extension_dvt_viewController_Key, container, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
         get {
-            (objc_getAssociatedObject(self, &Self.UIView_dvt_viewControllerKey) as? DVTWeakObjectContainer)?.object
+            (objc_getAssociatedObject(self, &Self.UIView_Extension_dvt_viewController_Key) as? DVTWeakObjectContainer)?.object
         }
     }
 }
@@ -134,19 +137,6 @@ public extension BaseWrapper where BaseType: UIView {
 }
 
 public extension BaseWrapper where BaseType: UIView {
-    /// 获取当前视图所在的窗口，直接往superview查找，直到拿到窗口
-    ///
-    /// 因其使用递归实现，尽量少用
-    var currentWindow: UIView? {
-        if self.base.superview is UIWindow {
-            return self.base.superview
-        } else {
-            return self.base.superview?.dvt.currentWindow
-        }
-    }
-}
-
-public extension BaseWrapper where BaseType: UIView {
     /// 视图截图
     var image: UIImage? {
         self.base.layer.dvt.image
@@ -164,7 +154,7 @@ public extension BaseWrapper where BaseType: UIView {
     }
 }
 
-fileprivate extension UIView {
+private extension UIView {
     func printNSException(_ exception: NSException) {
         var logerinfo = exception.name.rawValue
         let reason = exception.reason ?? ""
@@ -178,7 +168,7 @@ fileprivate extension UIView {
 public extension BaseWrapper where BaseType: UIView {
     func value(forKey key: String) -> Any? {
         var res: Any?
-        NSException.dvt.ignoreHandler { [weak base = self.base] in
+        NSException.dvt.ignore { [weak base = self.base] in
             res = base?.value(forKey: key)
         } completion: { [weak base = self.base] exception in
             base?.printNSException(exception)
@@ -187,7 +177,7 @@ public extension BaseWrapper where BaseType: UIView {
     }
 
     func setValue(_ value: Any?, forKey key: String) {
-        NSException.dvt.ignoreHandler { [weak base = self.base] in
+        NSException.dvt.ignore { [weak base = self.base] in
             base?.setValue(value, forKey: key)
         } completion: { [weak base = self.base] exception in
             base?.printNSException(exception)
@@ -196,7 +186,7 @@ public extension BaseWrapper where BaseType: UIView {
 
     func value(forKeyPath keyPath: String) -> Any? {
         var res: Any?
-        NSException.dvt.ignoreHandler { [weak base = self.base] in
+        NSException.dvt.ignore { [weak base = self.base] in
             res = base?.value(forKeyPath: keyPath)
         } completion: { [weak base = self.base] exception in
             base?.printNSException(exception)
@@ -205,7 +195,7 @@ public extension BaseWrapper where BaseType: UIView {
     }
 
     func setValue(_ value: Any?, forKeyPath keyPath: String) {
-        NSException.dvt.ignoreHandler { [weak base = self.base] in
+        NSException.dvt.ignore { [weak base = self.base] in
             base?.setValue(value, forKeyPath: keyPath)
         } completion: { [weak base = self.base] exception in
             base?.printNSException(exception)
@@ -234,54 +224,28 @@ public extension BaseWrapper where BaseType: UIView {
     }
 
     var viewController: UIViewController? {
-        if let vc = self.base.dvt_viewController {
+        guard let superview = self.base.superview else {
+            return nil
+        }
+        // 为确保每一次访问都是准确的，每次都重新对控制器的rootview赋值
+        if let wcls = NSClassFromString("UIViewController" + "Wrapper" + "View"), // UIViewController和UINavigationController的view.superview
+           let scls = NSClassFromString("UIDrop" + "Shadow" + "View"), // UITabbarController的view.superview
+           superview.isMember(of: wcls) || superview.isMember(of: scls) {
+            self.base.dvt_viewController = nil
+        }
+
+        if let vc = self.base.dvt_viewController, let sVc = superview.dvt.viewController, sVc == vc {
             return vc
         }
+
         var next = self.base.next
         repeat {
             if let vc = next as? UIViewController {
-                self.base.dvt_viewController = vc
-                return vc
+                self.base.dvt_viewController = vc.dvt.fatherViewController
+                return self.base.dvt_viewController
             }
             next = next?.next
         } while next != nil
         return nil
     }
 }
-
-// public extension UIView {
-//    class WatermarkView: UIView {
-//        @available(*, unavailable, message: "禁止修改")
-//        override public var isUserInteractionEnabled: Bool {
-//            willSet {
-//                fatalError("不能修改isUserInteractionEnabled属性")
-//            }
-//        }
-//
-//        override public init(frame: CGRect) {
-//            super.init(frame: frame)
-//            super.isUserInteractionEnabled = false
-//        }
-//
-//        required init?(coder: NSCoder) {
-//            fatalError("init(coder:) has not been implemented")
-//        }
-//    }
-//
-//    private static var WatermarkKey: Int8 = 0
-//    fileprivate var watermarkView: WatermarkView {
-//        guard let view = objc_getAssociatedObject(self, &Self.WatermarkKey) as? WatermarkView else {
-//            let view = WatermarkView()
-//            self.addSubview(view)
-//            objc_setAssociatedObject(self, &Self.WatermarkKey, view, .OBJC_ASSOCIATION_COPY_NONATOMIC)
-//            return view
-//        }
-//        return view
-//    }
-// }
-//
-// public extension BaseWrapper where BaseType: UIView {
-//    var watermark: UIView.WatermarkView {
-//        self.base.watermarkView
-//    }
-// }

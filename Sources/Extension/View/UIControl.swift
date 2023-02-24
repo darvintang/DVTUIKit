@@ -31,18 +31,37 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
 private extension UIControl {
-    static var TargetsKey: Int8 = 0
+    class UIControlEventTarget {
+        // MARK: Lifecycle
+        init(_ btn: UIControl, for event: UIControl.Event, and clickBlock: @escaping (_ control: UIControl?) -> Void) {
+            self.btn = btn
+            self.event = event
+            self.clickBlock = clickBlock
+        }
+
+        // MARK: Internal
+        weak var btn: UIControl?
+        let event: UIControl.Event
+        let clickBlock: (_ control: UIControl?) -> Void
+
+        @objc func didClick() {
+            self.clickBlock(self.btn)
+        }
+    }
+
+    static var UIControl_targets_Key: Int8 = 0
+
     var targets: [UIControlEventTarget] {
         set {
-            objc_setAssociatedObject(self, &Self.TargetsKey, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            objc_setAssociatedObject(self, &Self.UIControl_targets_Key, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
         }
         get {
             var reslist: [UIControlEventTarget] = []
-            if let list = objc_getAssociatedObject(self, &Self.TargetsKey) as? [UIControlEventTarget] {
+            if let list = objc_getAssociatedObject(self, &Self.UIControl_targets_Key) as? [UIControlEventTarget] {
                 reslist = list
             } else {
                 self.targets = reslist
@@ -51,10 +70,10 @@ private extension UIControl {
         }
     }
 
-    func addEvent(_ event: UIControl.Event, and clickBlock: @escaping (UIControl) -> Void) {
+    func addEvent(_ event: UIControl.Event, block clickBlock: @escaping (UIControl) -> Void) {
         let target = UIControlEventTarget(self, for: event) { control in
-            if let Tcontrol = control {
-                clickBlock(Tcontrol)
+            if let tempControl = control {
+                clickBlock(tempControl)
             }
         }
         self.addTarget(target, action: #selector(target.didClick), for: event)
@@ -65,22 +84,6 @@ private extension UIControl {
             self.targets[index] = target
         } else {
             self.targets.append(target)
-        }
-    }
-
-    class UIControlEventTarget {
-        init(_ btn: UIControl, for event: UIControl.Event, and clickBlock: @escaping (_ control: UIControl?) -> Void) {
-            self.btn = btn
-            self.event = event
-            self.clickBlock = clickBlock
-        }
-
-        weak var btn: UIControl?
-        let event: UIControl.Event
-        let clickBlock: (_ control: UIControl?) -> Void
-
-        @objc func didClick() {
-            self.clickBlock(self.btn)
         }
     }
 }

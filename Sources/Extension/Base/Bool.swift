@@ -31,12 +31,11 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
 /// 判断设备类型
-
-extension Bool: NameSpace {}
+extension Bool: NameSpace { }
 public extension BaseWrapper where BaseType == Bool {
     /// 判断当前线程是否是主线程
     static var isMainThread: Bool {
@@ -45,17 +44,17 @@ public extension BaseWrapper where BaseType == Bool {
 
     /// 刘海屏、灵动岛
     static var isAlienScreen: Bool {
-        (UIApplication.dvt.activeWindow?.safeAreaInsets.bottom ?? 0) > 0
+        (UIApplication.dvt.rootWindow?.safeAreaInsets.bottom ?? 0) > 0
     }
 
     /// iPhone14Pro/ProMax的灵动岛，只有竖屏才会使用
-    @available(iOS 16.0, *)
-    static var useDynamicIsland: Bool {
+    @available(iOS 16.0, *) static var useDynamicIsland: Bool {
         CGFloat.dvt.statusHeight == 54
     }
 
+    /// 是否是横屏
     static var isLandscape: Bool {
-        let orientation = UIApplication.dvt.activeWindowScene?.interfaceOrientation ?? .portrait
+        let orientation = UIApplication.dvt.rootWindowScene?.interfaceOrientation ?? .portrait
         return orientation == .landscapeLeft || orientation == .landscapeRight
     }
 }

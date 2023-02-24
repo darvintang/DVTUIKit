@@ -5,12 +5,13 @@
 //  Created by darvin on 2023/1/9.
 //
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
 public extension BaseWrapper where BaseType: UINavigationBar {
-    private var effectView: UIView? {
-        self.backgroundView?.subviews.filter({ $0.isMember(of: UIVisualEffectView.layerClass) }).first
+    // MARK: Internal
+    var backgroundView: UIView? {
+        self.base.value(forKey: "_" + "background" + "View") as? UIView
     }
 
     func removeEffect() {
@@ -29,7 +30,8 @@ public extension BaseWrapper where BaseType: UINavigationBar {
         self.backgroundView?.layer.mask = nil
     }
 
-    var backgroundView: UIView? {
-        self.base.value(forKey: "_" + "background" + "View") as? UIView
+    // MARK: Private
+    private var effectView: UIView? {
+        self.backgroundView?.subviews.filter { $0.isMember(of: UIVisualEffectView.layerClass) }.first
     }
 }

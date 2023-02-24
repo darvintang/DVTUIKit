@@ -31,21 +31,17 @@
 
  */
 
-import DVTFoundation
-import ObjectiveC
 import UIKit
+import ObjectiveC
+import DVTFoundation
 
 private extension UIView {
-    static var ClickBlockKey: Int8 = 0
+    static var UIView_Extension_clickBlock_Key: Int8 = 0
 
     var clickBlock: (() -> Void)? {
-        set {
-            objc_setAssociatedObject(self, &Self.ClickBlockKey, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
-        }
+        set { objc_setAssociatedObject(self, &Self.UIView_Extension_clickBlock_Key, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC) }
         get {
-            if let block = objc_getAssociatedObject(self, &Self.ClickBlockKey) {
-                return block as? () -> Void
-            }
+            if let block = objc_getAssociatedObject(self, &Self.UIView_Extension_clickBlock_Key) { return block as? () -> Void }
             return nil
         }
     }
@@ -75,8 +71,10 @@ public extension BaseWrapper where BaseType: UIView {
         }
         self.base.isUserInteractionEnabled = true
         let view = self.base
-        self.base.clickBlock = {
-            clickBlock(view)
+        self.base.clickBlock = { [weak view] in
+            if let tempView = view {
+                clickBlock(tempView)
+            }
         }
         let tap = UITapGestureRecognizer()
         tap.numberOfTapsRequired = taps

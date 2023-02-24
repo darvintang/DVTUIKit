@@ -31,21 +31,21 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
-extension CGSize: NameSpace {}
+extension CGSize: NameSpace { }
 public extension BaseWrapper where BaseType == CGSize {
     /// 屏幕大小
     static var screenSize: CGSize {
         return CGRect.dvt.screenBounds.size
     }
 
-    func convert(_ scale: CGFloat) -> CGSize {
-        CGSize(width: self.base.width * scale, height: self.base.height * scale)
-    }
-
     var isEmpty: Bool {
         self.base.width == 0 || self.base.height == 0
+    }
+
+    func convert(_ scale: CGFloat) -> CGSize {
+        CGSize(width: self.base.width * scale, height: self.base.height * scale)
     }
 }

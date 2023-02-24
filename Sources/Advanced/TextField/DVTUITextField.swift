@@ -54,14 +54,17 @@ public extension DVTUITextFieldDelegate {
     }
 }
 
-fileprivate class DVTUITextFieldDelegater: NSObject, UITextFieldDelegate {
+private class DVTUITextFieldDelegater: NSObject, UITextFieldDelegate {
+    // MARK: Lifecycle
     init(textField: DVTUITextField) {
         self.textField = textField
         super.init()
         textField.addTarget(self, action: #selector(self.handleTextChangeEvent(_:)), for: .editingChanged)
     }
 
+    // MARK: Internal
     weak var textField: DVTUITextField?
+
     var delegater: DVTUITextFieldDelegate? {
         self.textField?.delegater
     }
@@ -130,7 +133,8 @@ fileprivate class DVTUITextFieldDelegater: NSObject, UITextFieldDelegate {
             }
         }
 
-        return self.delegater?.textField(self.textField ?? textField, shouldChangeCharactersIn: range, replacementString: string, original: defaultReturn) ?? defaultReturn
+        return self.delegater?
+            .textField(self.textField ?? textField, shouldChangeCharactersIn: range, replacementString: string, original: defaultReturn) ?? defaultReturn
     }
 
     func textFieldDidChangeSelection(_ textField: UITextField) {
@@ -145,18 +149,15 @@ fileprivate class DVTUITextFieldDelegater: NSObject, UITextFieldDelegate {
         self.delegater?.textFieldShouldReturn?(textField) ?? true
     }
 
-    @available(iOS 16.0, *)
-    func textField(_ textField: UITextField, editMenuForCharactersIn range: NSRange, suggestedActions: [UIMenuElement]) -> UIMenu? {
+    @available(iOS 16.0, *) func textField(_ textField: UITextField, editMenuForCharactersIn range: NSRange, suggestedActions: [UIMenuElement]) -> UIMenu? {
         self.delegater?.textField?(textField, editMenuForCharactersIn: range, suggestedActions: suggestedActions)
     }
 
-    @available(iOS 16.0, *)
-    func textField(_ textField: UITextField, willPresentEditMenuWith animator: UIEditMenuInteractionAnimating) {
+    @available(iOS 16.0, *) func textField(_ textField: UITextField, willPresentEditMenuWith animator: UIEditMenuInteractionAnimating) {
         self.delegater?.textField?(textField, willPresentEditMenuWith: animator)
     }
 
-    @available(iOS 16.0, *)
-    func textField(_ textField: UITextField, willDismissEditMenuWith animator: UIEditMenuInteractionAnimating) {
+    @available(iOS 16.0, *) func textField(_ textField: UITextField, willDismissEditMenuWith animator: UIEditMenuInteractionAnimating) {
         self.delegater?.textField?(textField, willDismissEditMenuWith: animator)
     }
 }
@@ -169,13 +170,68 @@ fileprivate class DVTUITextFieldDelegater: NSObject, UITextFieldDelegate {
 /// 2. 自定义 UITextField 的文字 padding。
 /// 3. 支持限制输入的文字的长度。
 open class DVTUITextField: UITextField {
-    private var _delegater: DVTUITextFieldDelegater? {
+    // MARK: Lifecycle
+    override public init(frame: CGRect) {
+        super.init(frame: frame)
+        self.didInitialize()
+    }
+
+    public required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        self.didInitialize()
+    }
+
+    open func didInitialize() { }
+
+    // MARK: Open
+    open weak var delegater: DVTUITextFieldDelegate?
+
+    override open var placeholder: String? {
         didSet {
-            super.delegate = self._delegater
+            if oldValue != self.placeholder && self.placeholderColor != nil {
+                self.updatePlaceholder()
+            }
         }
     }
 
-    open weak var delegater: DVTUITextFieldDelegate?
+    override open var text: String? {
+        didSet {
+            if oldValue != self.text {
+                self.customTextDidChangeEvent()
+            }
+        }
+    }
+
+    override open var attributedText: NSAttributedString? {
+        didSet {
+            if oldValue != self.attributedText {
+                self.customTextDidChangeEvent()
+            }
+        }
+    }
+
+    override open func textRect(forBounds bounds: CGRect) -> CGRect {
+        let tBounds = bounds.inset(by: self.textInsets)
+        return super.textRect(forBounds: tBounds)
+    }
+
+    override open func editingRect(forBounds bounds: CGRect) -> CGRect {
+        let tBounds = bounds.inset(by: self.textInsets)
+        return super.editingRect(forBounds: tBounds)
+    }
+
+    override open func clearButtonRect(forBounds bounds: CGRect) -> CGRect {
+        super.clearButtonRect(forBounds: bounds).offsetBy(dx: self.clearBtnOffset.horizontal, dy: self.clearBtnOffset.vertical)
+    }
+
+    // MARK: Public
+    /// 最大长度，表情占两个单位长度(NSString)
+    @IBInspectable public var maximumLength: Int = .max
+    /// 文字在输入框内的 padding。如果出现 clearButton，则 textInsets.right 会控制 clearButton 的右边距
+    public var textInsets: UIEdgeInsets = .zero
+
+    /// clearButton 在默认位置上的偏移
+    public var clearBtnOffset: UIOffset = .zero
 
     /// 限制输入的文字的长度需要利用到`delegate`，`delegate`的功能由`delegater`代替
     ///
@@ -193,8 +249,6 @@ open class DVTUITextField: UITextField {
         }
     }
 
-    /// 最大长度，表情占两个单位长度(NSString)
-    @IBInspectable public var maximumLength: Int = .max
     /// 占位字符颜色
     @IBInspectable public var placeholderColor: UIColor? {
         didSet {
@@ -204,11 +258,16 @@ open class DVTUITextField: UITextField {
         }
     }
 
-    override open var placeholder: String? {
+    // MARK: Fileprivate
+    fileprivate func customTextDidChangeEvent() {
+        self.sendActions(for: .editingChanged)
+        NotificationCenter.default.post(name: UITextField.textDidChangeNotification, object: self)
+    }
+
+    // MARK: Private
+    private var _delegater: DVTUITextFieldDelegater? {
         didSet {
-            if oldValue != self.placeholder && self.placeholderColor != nil {
-                self.updatePlaceholder()
-            }
+            super.delegate = self._delegater
         }
     }
 
@@ -218,59 +277,5 @@ open class DVTUITextField: UITextField {
         } else {
             super.placeholder = self.placeholder
         }
-    }
-
-    fileprivate func customTextDidChangeEvent() {
-        self.sendActions(for: .editingChanged)
-        NotificationCenter.default.post(name: UITextField.textDidChangeNotification, object: self)
-    }
-
-    override open var text: String? {
-        didSet {
-            if oldValue != self.text {
-                self.customTextDidChangeEvent()
-            }
-        }
-    }
-
-    /// 文字在输入框内的 padding。如果出现 clearButton，则 textInsets.right 会控制 clearButton 的右边距
-    public var textInsets: UIEdgeInsets = .zero
-
-    /// clearButton 在默认位置上的偏移
-    public var clearBtnOffset: UIOffset = .zero
-
-    override open func textRect(forBounds bounds: CGRect) -> CGRect {
-        let tBounds = bounds.inset(by: self.textInsets)
-        return super.textRect(forBounds: tBounds)
-    }
-
-    override open func editingRect(forBounds bounds: CGRect) -> CGRect {
-        let tBounds = bounds.inset(by: self.textInsets)
-        return super.editingRect(forBounds: tBounds)
-    }
-
-    override open func clearButtonRect(forBounds bounds: CGRect) -> CGRect {
-        super.clearButtonRect(forBounds: bounds).offsetBy(dx: self.clearBtnOffset.horizontal, dy: self.clearBtnOffset.vertical)
-    }
-
-    override open var attributedText: NSAttributedString? {
-        didSet {
-            if oldValue != self.attributedText {
-                self.customTextDidChangeEvent()
-            }
-        }
-    }
-
-    override public init(frame: CGRect) {
-        super.init(frame: frame)
-        self.didInitialize()
-    }
-
-    public required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        self.didInitialize()
-    }
-
-    open func didInitialize() {
     }
 }

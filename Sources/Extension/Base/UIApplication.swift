@@ -31,28 +31,43 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
 extension UIApplication: NameSpace { }
 
 public extension BaseWrapper where BaseType == UIApplication {
-    static var activeWindow: UIWindow? {
+    static var rootWindowScene: UIWindowScene? {
+        return UIApplication.shared.connectedScenes.first as? UIWindowScene
+    }
+
+    static var rootWindow: UIWindow? {
         var window: UIWindow?
         if let tempWindow = UIApplication.shared.delegate?.window {
             window = tempWindow
         }
         if window == nil {
-            window = self.activeWindowScene?.windows.first
+            window = self.rootWindowScene?.windows.first
         }
         return window
     }
 
+    static var rootViewController: UIViewController? {
+        self.rootWindow?.rootViewController
+    }
+
     static var activeWindowScene: UIWindowScene? {
         if UIApplication.shared.connectedScenes.count == 1 {
-            return UIApplication.shared.connectedScenes.first as? UIWindowScene
-        } else {
-            return UIApplication.shared.connectedScenes.filter({ $0.activationState == .foregroundActive }).compactMap({ $0 as? UIWindowScene }).first
+            return self.rootWindowScene
         }
+        return UIApplication.shared.connectedScenes.filter { $0.activationState == .foregroundActive }.first as? UIWindowScene ?? self.rootWindowScene
+    }
+
+    static var activeWindow: UIWindow? {
+        self.activeWindowScene?.windows.filter { $0.isKeyWindow }.first
+    }
+
+    static var activeViewController: UIViewController? {
+        self.activeWindow?.rootViewController?.dvt.activeViewController
     }
 }

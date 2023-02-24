@@ -31,26 +31,24 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
 #if canImport(DVTUIKit_Extension)
     import DVTUIKit_Extension
 #endif
 
 open class DVTUILabel: UILabel {
+    // MARK: Lifecycle
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    // MARK: Open
     open var contentEdgeInsets: UIEdgeInsets = .zero {
         didSet {
             self.setNeedsDisplay()
         }
-    }
-
-    override open func sizeThatFits(_ size: CGSize) -> CGSize {
-        let edgeInsets = self.contentEdgeInsets
-        var tsize = super.sizeThatFits(CGSize(width: size.width - edgeInsets.left - edgeInsets.right, height: size.height - edgeInsets.top - edgeInsets.bottom))
-        tsize.width += edgeInsets.left + edgeInsets.right
-        tsize.height += edgeInsets.top + edgeInsets.bottom
-        return tsize
     }
 
     override open var intrinsicContentSize: CGSize {
@@ -59,15 +57,6 @@ open class DVTUILabel: UILabel {
             preferredMaxLayoutWidth = CGFloat.greatestFiniteMagnitude
         }
         return self.sizeThatFits(CGSize(width: preferredMaxLayoutWidth, height: CGFloat.greatestFiniteMagnitude))
-    }
-
-    override open func drawText(in rect: CGRect) {
-        var resRect = rect.dvt.inset(self.contentEdgeInsets)
-        // https://github.com/Tencent/QMUI_iOS/issues/529
-        if self.numberOfLines == 1 && (self.lineBreakMode == .byCharWrapping || self.lineBreakMode == .byWordWrapping) {
-            resRect = resRect.dvt.setHeight(resRect.height + self.contentEdgeInsets.top * 2)
-        }
-        super.drawText(in: resRect)
     }
 
     override open var isHighlighted: Bool {
@@ -90,27 +79,6 @@ open class DVTUILabel: UILabel {
             self.originalBackgroundColor
         }
     }
-
-    /// “复制”按钮的标题
-    ///
-    /// 默认为“复制”
-    public var menuCopyItemTitle: String = "复制"
-
-    /// label 在 highlighted 时的背景色
-    ///
-    /// 通常用于两种场景：
-    /// 1. 开启了 canPerformCopyAction 时，长按后的背景色
-    /// 2. 作为 subviews 放在 UITableViewCell 上，当 cell highlighted 时，label 也会触发 highlighted，此时背景色也会显示为这个属性的值
-    ///
-    /// 默认为 nil
-    public var highlightedBackgroundColor: UIColor?
-
-    private var originalBackgroundColor: UIColor?
-    /// 长按手势
-    private var longGestureRecognizer: UILongPressGestureRecognizer?
-
-    /// 记录用户设定的isUserInteractionEnabled，用于移除长按功能后恢复
-    private var oldUserInteractionEnabled = false
 
     override open var isUserInteractionEnabled: Bool {
         didSet {
@@ -147,14 +115,49 @@ open class DVTUILabel: UILabel {
         }
     }
 
-    deinit {
-        NotificationCenter.default.removeObserver(self)
+    override open func sizeThatFits(_ size: CGSize) -> CGSize {
+        let edgeInsets = self.contentEdgeInsets
+        var tsize = super.sizeThatFits(CGSize(width: size.width - edgeInsets.left - edgeInsets.right, height: size.height - edgeInsets.top - edgeInsets.bottom))
+        tsize.width += edgeInsets.left + edgeInsets.right
+        tsize.height += edgeInsets.top + edgeInsets.bottom
+        return tsize
     }
+
+    override open func drawText(in rect: CGRect) {
+        var resRect = rect.dvt.inset(self.contentEdgeInsets)
+        // https://github.com/Tencent/QMUI_iOS/issues/529
+        if self.numberOfLines == 1 && (self.lineBreakMode == .byCharWrapping || self.lineBreakMode == .byWordWrapping) {
+            resRect = resRect.dvt.setHeight(resRect.height + self.contentEdgeInsets.top * 2)
+        }
+        super.drawText(in: resRect)
+    }
+
+    // MARK: Public
+    /// “复制”按钮的标题
+    ///
+    /// 默认为“复制”
+    public var menuCopyItemTitle = "复制"
+
+    /// label 在 highlighted 时的背景色
+    ///
+    /// 通常用于两种场景：
+    /// 1. 开启了 canPerformCopyAction 时，长按后的背景色
+    /// 2. 作为 subviews 放在 UITableViewCell 上，当 cell highlighted 时，label 也会触发 highlighted，此时背景色也会显示为这个属性的值
+    ///
+    /// 默认为 nil
+    public var highlightedBackgroundColor: UIColor?
+
+    // MARK: Private
+    private var originalBackgroundColor: UIColor?
+    /// 长按手势
+    private var longGestureRecognizer: UILongPressGestureRecognizer?
+
+    /// 记录用户设定的isUserInteractionEnabled，用于移除长按功能后恢复
+    private var oldUserInteractionEnabled = false
 }
 
 // MARK: - 长按复制功能
-
-fileprivate extension DVTUILabel {
+private extension DVTUILabel {
     @objc func copyString() {
         let pasteboard = UIPasteboard.general
         if let string = self.text {
@@ -192,7 +195,8 @@ fileprivate extension DVTUILabel {
 
 @available(iOS 16.0, *)
 extension DVTUILabel: UIEditMenuInteractionDelegate {
-    open func editMenuInteraction(_ interaction: UIEditMenuInteraction, menuFor configuration: UIEditMenuConfiguration, suggestedActions: [UIMenuElement]) -> UIMenu? {
+    open func editMenuInteraction(_ interaction: UIEditMenuInteraction, menuFor configuration: UIEditMenuConfiguration,
+                                  suggestedActions: [UIMenuElement]) -> UIMenu? {
         let copyAction = UIAction(title: self.menuCopyItemTitle, handler: { [weak self] _ in
             self?.copyString()
         })
@@ -203,11 +207,13 @@ extension DVTUILabel: UIEditMenuInteractionDelegate {
         self.bounds
     }
 
-    open func editMenuInteraction(_ interaction: UIEditMenuInteraction, willDismissMenuFor configuration: UIEditMenuConfiguration, animator: UIEditMenuInteractionAnimating) {
+    open func editMenuInteraction(_ interaction: UIEditMenuInteraction, willDismissMenuFor configuration: UIEditMenuConfiguration,
+                                  animator: UIEditMenuInteractionAnimating) {
         self.isHighlighted = false
     }
 
-    open func editMenuInteraction(_ interaction: UIEditMenuInteraction, willPresentMenuFor configuration: UIEditMenuConfiguration, animator: UIEditMenuInteractionAnimating) {
+    open func editMenuInteraction(_ interaction: UIEditMenuInteraction, willPresentMenuFor configuration: UIEditMenuConfiguration,
+                                  animator: UIEditMenuInteractionAnimating) {
         self.isHighlighted = true
     }
 }

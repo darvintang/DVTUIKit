@@ -31,35 +31,15 @@
 
  */
 
-import DVTFoundation
 import UIKit
+import DVTFoundation
 
 #if canImport(DVTUIKit_Extension)
     import DVTUIKit_Extension
 #endif
 
 public struct KeyboardInfo {
-    public var minY: CGFloat {
-        self.endFrame.origin.y
-    }
-
-    public var height: CGFloat {
-        self.bounds.height
-    }
-
-    public var width: CGFloat {
-        self.bounds.width
-    }
-
-    public private(set) var animationDuration: CGFloat = 0.25
-
-    public private(set) var bounds: CGRect = .zero
-    public private(set) var animationCurve: UIView.AnimationCurve = .easeInOut
-
-    public private(set) var beginFrame: CGRect = .zero
-    public private(set) var endFrame: CGRect = .zero
-    public private(set) var targetResponder: UIResponder?
-
+    // MARK: Lifecycle
     fileprivate init(_ notify: Notification) {
         if let dict = notify.userInfo as? [String: Any] {
             self.beginFrame = (dict[UIResponder.keyboardFrameBeginUserInfoKey] as? CGRect) ?? .zero
@@ -72,34 +52,32 @@ public struct KeyboardInfo {
             self.bounds = CGRect(origin: .zero, size: self.endFrame.size)
         }
     }
+
+    // MARK: Public
+    public private(set) var animationDuration: CGFloat = 0.25
+
+    public private(set) var bounds: CGRect = .zero
+    public private(set) var animationCurve: UIView.AnimationCurve = .easeInOut
+
+    public private(set) var beginFrame: CGRect = .zero
+    public private(set) var endFrame: CGRect = .zero
+    public private(set) var targetResponder: UIResponder?
+
+    public var minY: CGFloat {
+        self.endFrame.origin.y
+    }
+
+    public var height: CGFloat {
+        self.bounds.height
+    }
+
+    public var width: CGFloat {
+        self.bounds.width
+    }
 }
 
 public class DVTKeyboardManager {
-    private static let _default = DVTKeyboardManager()
-    public static var `default`: DVTKeyboardManager {
-        _default
-    }
-
-    public typealias KeyboardBlock = (_ info: KeyboardInfo) -> Void
-    fileprivate class KeyboardMonitor {
-        private(set) weak var observer: AnyObject?
-        private(set) var block: KeyboardBlock?
-
-        init(_ observer: AnyObject, executable block: @escaping KeyboardBlock) {
-            self.observer = observer
-            self.block = block
-        }
-    }
-
-    fileprivate var willShowMonitors: [KeyboardMonitor] = []
-    fileprivate var didShowMonitors: [KeyboardMonitor] = []
-
-    fileprivate var willHideMonitors: [KeyboardMonitor] = []
-    fileprivate var didHideMonitors: [KeyboardMonitor] = []
-
-    fileprivate var willChangeMonitors: [KeyboardMonitor] = []
-    fileprivate var didChangeMonitors: [KeyboardMonitor] = []
-
+    // MARK: Lifecycle
     private init() {
         dvtuiloger.debug("开始监听键盘状态")
         NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
@@ -111,6 +89,41 @@ public class DVTKeyboardManager {
         NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardWillChange(_:)), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardDidChange(_:)), name: UIResponder.keyboardDidChangeFrameNotification, object: nil)
     }
+
+    // MARK: Public
+    public typealias KeyboardBlock = (_ info: KeyboardInfo) -> Void
+
+    public static var `default`: DVTKeyboardManager {
+        _default
+    }
+
+    public private(set) var info: KeyboardInfo?
+    public private(set) var isVisible = false
+
+    // MARK: Fileprivate
+    fileprivate class KeyboardMonitor {
+        // MARK: Lifecycle
+        init(_ observer: AnyObject, executable block: @escaping KeyboardBlock) {
+            self.observer = observer
+            self.block = block
+        }
+
+        // MARK: Internal
+        private(set) weak var observer: AnyObject?
+        private(set) var block: KeyboardBlock?
+    }
+
+    fileprivate var willShowMonitors: [KeyboardMonitor] = []
+    fileprivate var didShowMonitors: [KeyboardMonitor] = []
+
+    fileprivate var willHideMonitors: [KeyboardMonitor] = []
+    fileprivate var didHideMonitors: [KeyboardMonitor] = []
+
+    fileprivate var willChangeMonitors: [KeyboardMonitor] = []
+    fileprivate var didChangeMonitors: [KeyboardMonitor] = []
+
+    // MARK: Private
+    private static let _default = DVTKeyboardManager()
 
     private func handleNotification(_ status: KeyboardStatus, notify: Notification) {
         let info = KeyboardInfo(notify)
@@ -151,32 +164,35 @@ public class DVTKeyboardManager {
         }
     }
 
-    @objc private func keyboardWillShow(_ notify: Notification) {
+    @objc
+    private func keyboardWillShow(_ notify: Notification) {
         self.handleNotification(.willShow, notify: notify)
     }
 
-    @objc private func keyboardDidShow(_ notify: Notification) {
+    @objc
+    private func keyboardDidShow(_ notify: Notification) {
         self.handleNotification(.didShow, notify: notify)
     }
 
-    @objc private func keyboardWillHide(_ notify: Notification) {
+    @objc
+    private func keyboardWillHide(_ notify: Notification) {
         self.handleNotification(.willHide, notify: notify)
     }
 
-    @objc private func keyboardDidHide(_ notify: Notification) {
+    @objc
+    private func keyboardDidHide(_ notify: Notification) {
         self.handleNotification(.didHide, notify: notify)
     }
 
-    @objc private func keyboardWillChange(_ notify: Notification) {
+    @objc
+    private func keyboardWillChange(_ notify: Notification) {
         self.handleNotification(.willChange, notify: notify)
     }
 
-    @objc private func keyboardDidChange(_ notify: Notification) {
+    @objc
+    private func keyboardDidChange(_ notify: Notification) {
         self.handleNotification(.didChange, notify: notify)
     }
-
-    public private(set) var info: KeyboardInfo?
-    public private(set) var isVisible: Bool = false
 }
 
 public extension DVTKeyboardManager {

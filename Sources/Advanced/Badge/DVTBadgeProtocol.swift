@@ -1,8 +1,8 @@
 //
-//  DVTUIAlertController.swift
-//  DVTUIKit_Alert
+//  DVTBadgeProtocol.swift
+//  DVTUIKit_Badge
 //
-//  Created by darvin on 2023/2/2.
+//  Created by darvin on 2023/2/28.
 //
 
 /*
@@ -32,29 +32,20 @@
  */
 
 import UIKit
+import DVTFoundation
 
 #if canImport(DVTUIKit_Extension)
     import DVTUIKit_Extension
 #endif
 
-#if canImport(DVTUIKit_ModalPresentation)
-    import DVTUIKit_ModalPresentation
-#endif
+public protocol DVTBadgeProtocol {
+    var dvt_view: UIView? { get }
 
-#if canImport(DVTUIKit_Button)
-    import DVTUIKit_Button
-#endif
+    func dvt_updateBadge()
+}
 
-#if canImport(DVTUIKit_Label)
-    import DVTUIKit_Label
-#endif
-
-#if canImport(DVTUIKit_TextField)
-    import DVTUIKit_TextField
-#endif
-
-open class DVTUIAlertController: UIViewController {
-    override open func viewDidLoad() {
-        super.viewDidLoad()
+public extension DVTBadgeProtocol {
+    func dvt_updateBadge() {
+        self.dvt_view?.setNeedsLayout()
     }
 }

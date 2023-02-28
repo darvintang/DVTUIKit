@@ -76,15 +76,15 @@ public extension UIViewController {
 
 private extension UIViewController {
     static var UIViewController_Extension_dvt_extension_Swizzleed_flag = false
-    static var UIViewController_Extension_dvt_Extension_visibleState_Key: UInt8 = 0
+    static var UIViewController_Extension_dvt_Extension_visibleState_key: UInt8 = 0
 
     var dvt_extension_visibleState: UIViewController.VisibleState {
         set {
             UIViewController_dvt_extension_Swizzleed_flag = true
-            objc_setAssociatedObject(self, &Self.UIViewController_Extension_dvt_Extension_visibleState_Key, newValue.rawValue, .OBJC_ASSOCIATION_ASSIGN)
+            objc_setAssociatedObject(self, &Self.UIViewController_Extension_dvt_Extension_visibleState_key, newValue.rawValue, .OBJC_ASSOCIATION_ASSIGN)
         }
         get {
-            let rawValue = objc_getAssociatedObject(self, &Self.UIViewController_Extension_dvt_Extension_visibleState_Key) as? UInt8 ?? 0
+            let rawValue = objc_getAssociatedObject(self, &Self.UIViewController_Extension_dvt_Extension_visibleState_key) as? UInt8 ?? 0
             return UIViewController.VisibleState(rawValue: rawValue) ?? .unknow
         }
     }
@@ -147,9 +147,7 @@ public extension BaseWrapper where BaseType: UIViewController {
     /// 当前显示的和window有直接联系的控制器
     var activeViewController: UIViewController? {
         let vc = self.base
-        if vc != vc.view.window?.rootViewController {
-            return vc.view.window?.rootViewController?.dvt.activeViewController
-        }
+
         if let presentController = vc.presentedViewController {
             return presentController.dvt.activeViewController
         }
@@ -159,9 +157,12 @@ public extension BaseWrapper where BaseType: UIViewController {
         }
 
         if let navigationController = vc as? UINavigationController {
-            return navigationController.topViewController?.dvt.activeViewController
+            return navigationController.visibleViewController
         }
 
+        if vc != vc.view.window?.rootViewController {
+            return vc.view.window?.rootViewController?.dvt.activeViewController
+        }
         return vc
     }
 

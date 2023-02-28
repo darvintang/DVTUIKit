@@ -38,7 +38,23 @@ import UIKit
 #endif
 
 open class DVTUIModalPresentationViewController: UIViewController {
+    // MARK: Lifecycle
     override open func viewDidLoad() {
         super.viewDidLoad()
     }
+
+    // MARK: Public
+    public enum AnimationStyle {
+        case fade, // 渐现渐隐，默认
+             popup, // 从中心点弹出
+             slide // 从下往上升起
+    }
+
+    public var contentViewController: UIViewController?
+    public var contentView: UIView?
+
+    // MARK: Private
+    private var window: DVTModalPresentationWindow?
 }
+
+public class DVTModalPresentationWindow: UIWindow { }

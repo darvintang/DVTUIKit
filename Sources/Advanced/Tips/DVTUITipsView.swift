@@ -596,6 +596,7 @@ public class DVTUITipsView: DVTUIView {
                 if DVTKeyboardManager.default.isVisible {
                     make.constant = -self.marginInsets.bottom - (DVTKeyboardManager.default.info?.height ?? 0)
                 }
+                make.priority = .defaultLow
             }
         }
         if self.position != .top {
@@ -603,6 +604,7 @@ public class DVTUITipsView: DVTUIView {
                 make.attribute = .top
                 make.related = .greaterThanOrEqual
                 make.constant = self.marginInsets.top + (self.superview?.safeAreaInsets.top ?? 0)
+                make.priority = .defaultLow
             }
         }
         self.updateConstraintsIfNeeded()
@@ -618,7 +620,7 @@ public extension DVTUITipsView {
         if self.superview != nil, self.superview != superview {
             self.removeFromSuperview()
         }
-        UIView.swizzleed()
+        UIView.tip_swizzleed()
         superview.addSubview(self)
         self.dvt.addConstraint(superview) { make in
             make.attribute = .top
@@ -667,13 +669,11 @@ public extension DVTUITipsView {
 private extension UIView {
     static var UIView_DVTUITips_swizzleed_flag = false
 
-    static func swizzleed() {
-        if self.UIView_DVTUITips_swizzleed_flag {
-            return
-        }
+    static func tip_swizzleed() {
+        if self.UIView_DVTUITips_swizzleed_flag { return }
+        defer { self.UIView_DVTUITips_swizzleed_flag = true }
         self.dvt_swizzleInstanceSelector(#selector(addSubview(_:)), swizzle: #selector(dvt_tips_addSubview(_:)))
         self.dvt_swizzleInstanceSelector(#selector(bringSubviewToFront(_:)), swizzle: #selector(dvt_tips_bringSubviewToFront(_:)))
-        self.UIView_DVTUITips_swizzleed_flag = true
     }
 
     @objc func dvt_tips_addSubview(_ view: UIView) {

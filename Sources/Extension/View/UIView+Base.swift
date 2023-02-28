@@ -38,15 +38,15 @@ import DVTFoundation
 extension UIView: NameSpace { }
 
 private extension UIView {
-    static var UIView_Extension_dvt_viewController_Key: UInt8 = 0
+    static var UIView_Extension_dvt_viewController_key: UInt8 = 0
 
     var dvt_viewController: UIViewController? {
         set {
             let container = DVTWeakObjectContainer(object: newValue)
-            objc_setAssociatedObject(self, &Self.UIView_Extension_dvt_viewController_Key, container, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &Self.UIView_Extension_dvt_viewController_key, container, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
         get {
-            (objc_getAssociatedObject(self, &Self.UIView_Extension_dvt_viewController_Key) as? DVTWeakObjectContainer)?.object
+            (objc_getAssociatedObject(self, &Self.UIView_Extension_dvt_viewController_key) as? DVTWeakObjectContainer)?.object
         }
     }
 }

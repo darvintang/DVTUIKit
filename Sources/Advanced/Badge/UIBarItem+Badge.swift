@@ -40,52 +40,38 @@ import DVTFoundation
 
 extension UIBarItem: NameSpace {
     // MARK: Fileprivate
-    fileprivate var view: UIView {
-        set { }
-        get {
-            Self.swizzleed(); var view: UIView?
-            NSException.dvt.ignore { view = self.value(forKey: "view") as? UIView }
-            return view ?? self.tempView
-        }
-    }
-
-    fileprivate static func swizzleed() {
-        if self.UIBarItem_DVTUIKit_Badge_Swizzleed { return }
+    fileprivate static func badge_swizzleed() {
+        if self.UIBarItem_DVTUIKit_Badge_swizzleed_flag { return }
         self.dvt_swizzleInstanceSelector(NSSelectorFromString("setView:"), swizzle: #selector(dvt_setView(_:)))
-        self.UIBarItem_DVTUIKit_Badge_Swizzleed = true
+        self.UIBarItem_DVTUIKit_Badge_swizzleed_flag = true
     }
 
     // MARK: Private
-    private static var UIBarItem_DVTUIKit_Badge_Swizzleed = false
-    private static var UIBarItem_DVTUIKit_Badge_tempViewKey: UInt8 = 0
+    private static var UIBarItem_DVTUIKit_Badge_swizzleed_flag = false
+    private static var UIBarItem_DVTUIKit_Badge_tempView_key: UInt8 = 0
 
     /// 用于在Item没有完成初始化之前保存角标信息
     private var tempView: UIView {
-        set { objc_setAssociatedObject(self, &Self.UIBarItem_DVTUIKit_Badge_tempViewKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
+        set { objc_setAssociatedObject(self, &Self.UIBarItem_DVTUIKit_Badge_tempView_key, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
         get {
-            if let view = objc_getAssociatedObject(self, &Self.UIBarItem_DVTUIKit_Badge_tempViewKey) as? UIView { return view }
-            let view = UIView(); objc_setAssociatedObject(self, &Self.UIBarItem_DVTUIKit_Badge_tempViewKey, view, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            if let view = objc_getAssociatedObject(self, &Self.UIBarItem_DVTUIKit_Badge_tempView_key) as? UIView { return view }
+            let view = UIView(); objc_setAssociatedObject(self, &Self.UIBarItem_DVTUIKit_Badge_tempView_key, view, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             return view
         }
     }
 
-    @objc
-    private func dvt_setView(_ view: UIView?) {
-        if self.view == self.tempView { view?.dvt.synchronizeBaege(self.tempView) }
-        self.dvt_setView(view)
+    @objc private func dvt_setView(_ view: UIView?) {
+        var tempView = view
+        if self.dvt_view == self.tempView { tempView?.dvt.synchronizeBaege(self.tempView) }
+        self.dvt_setView(tempView)
     }
 }
 
-public extension BaseWrapper where BaseType: UIBarItem {
-    /// 用数字设置未读数，0表示不显示未读数
-    var badgeInteger: UInt {
-        set { self.base.view.dvt.badgeInteger = newValue }
-        get { self.base.view.dvt.badgeInteger }
-    }
-
-    /// 用数字设置未读数，0表示不显示未读数
-    var badgeString: String {
-        set { self.base.view.dvt.badgeString = newValue }
-        get { self.base.view.dvt.badgeString }
+extension UIBarItem: DVTBadgeProtocol {
+    public var dvt_view: UIView? {
+        Self.badge_swizzleed()
+        var view: UIView?
+        NSException.dvt.ignore { view = self.value(forKey: "view") as? UIView }
+        return view ?? self.tempView
     }
 }

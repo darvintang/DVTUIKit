@@ -114,7 +114,14 @@ fileprivate enum LocalPackage: String, ProductInfoProtocol {
             switch self {
                 case .progress, .tips, .emptyView:
                     dependencies.append(.public)
-                case .alert, .moreOperation:
+                case .badge:
+                    dependencies.append(.label)
+                case .alert:
+                    dependencies.append(.label)
+                    dependencies.append(.button)
+                    dependencies.append(.textField)
+                    fallthrough
+                case .moreOperation:
                     dependencies.append(.modalPresentation)
                 default:
                     break

@@ -35,26 +35,26 @@ import UIKit
 import DVTFoundation
 
 private extension UIScrollView {
-    static var UIScrollView_dvt_hasSetInitialContentInset_Key: UInt8 = 0
-    static var UIScrollView_dvt_initialContentInset_Key: UInt8 = 0
+    static var UIScrollView_dvt_hasSetInitialContentInset_key: UInt8 = 0
+    static var UIScrollView_dvt_initialContentInset_key: UInt8 = 0
 
     var hasSetInitialContentInset: Bool {
         set {
-            objc_setAssociatedObject(self, &Self.UIScrollView_dvt_hasSetInitialContentInset_Key, newValue, .OBJC_ASSOCIATION_ASSIGN)
+            objc_setAssociatedObject(self, &Self.UIScrollView_dvt_hasSetInitialContentInset_key, newValue, .OBJC_ASSOCIATION_ASSIGN)
         }
         get {
-            (objc_getAssociatedObject(self, &Self.UIScrollView_dvt_hasSetInitialContentInset_Key) as? Bool) ?? false
+            (objc_getAssociatedObject(self, &Self.UIScrollView_dvt_hasSetInitialContentInset_key) as? Bool) ?? false
         }
     }
 
     var initialContentInset: UIEdgeInsets {
         set {
-            objc_setAssociatedObject(self, &Self.UIScrollView_dvt_initialContentInset_Key, newValue, .OBJC_ASSOCIATION_ASSIGN)
+            objc_setAssociatedObject(self, &Self.UIScrollView_dvt_initialContentInset_key, newValue, .OBJC_ASSOCIATION_ASSIGN)
             self.contentInset = newValue
             self.scrollIndicatorInsets = newValue
         }
         get {
-            (objc_getAssociatedObject(self, &Self.UIScrollView_dvt_initialContentInset_Key) as? UIEdgeInsets) ?? .zero
+            (objc_getAssociatedObject(self, &Self.UIScrollView_dvt_initialContentInset_key) as? UIEdgeInsets) ?? .zero
         }
     }
 }

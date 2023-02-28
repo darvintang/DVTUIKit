@@ -45,17 +45,15 @@ public extension BaseWrapper where BaseType == CGRect {
         CGRect(origin: CGPoint(x: self.base.origin.y, y: self.base.origin.x), size: self.base.size)
     }
 
-    var center: CGPoint {
-        CGPoint(x: self.base.midX, y: self.base.midY)
-    }
+    var center: CGPoint { CGPoint(x: self.base.midX, y: self.base.midY) }
 
-    var x: CGFloat {
-        self.base.origin.x
-    }
+    var x: CGFloat { self.base.origin.x }
 
-    var y: CGFloat {
-        self.base.origin.y
-    }
+    var y: CGFloat { self.base.origin.y }
+
+    var height: CGFloat { self.base.size.height }
+
+    var width: CGFloat { self.base.size.width }
 
     /// 基于当前设备的屏幕倍数，进行像素取整。
     var flat: CGRect {
@@ -167,7 +165,7 @@ public extension BaseWrapper where BaseType == CGRect {
         return rect
     }
 
-    func setY(_ x: CGFloat) -> CGRect {
+    func setY(_ y: CGFloat) -> CGRect {
         var rect = self.base
         rect.origin.y = y
         return rect

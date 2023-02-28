@@ -64,7 +64,7 @@ extension BaseWrapper where BaseType == UIViewController {
     static func navigation_swizzleed() {
         if BaseType.UIViewController_navigation_swizzleed_flag { return }
         defer { BaseType.UIViewController_navigation_swizzleed_flag = true }
-        BaseType.dvt_swizzleInstanceSelector(#selector(BaseType.viewWillAppear(_:)), swizzle: #selector(BaseType.dvt_viewWillAppear(_:)))
+        BaseType.dvt_swizzleInstanceSelector(#selector(BaseType.viewWillAppear(_:)), swizzle: #selector(BaseType.dvt_navigation_viewWillAppear(_:)))
     }
 }
 
@@ -75,19 +75,19 @@ protocol DVTUINavigationBridgeDelegate: UINavigationController {
 private extension UIViewController {
     static var UIViewController_navigation_swizzleed_flag = false
 
-    @objc func dvt_viewWillAppear(_ animated: Bool) {
+    @objc func dvt_navigation_viewWillAppear(_ animated: Bool) {
         self.dvt.renderNavigationBarStyle(animated)
-        self.dvt_viewWillAppear(animated)
+        self.dvt_navigation_viewWillAppear(animated)
         if let navVC = self.navigationController as? DVTUINavigationBridgeDelegate {
             navVC.dvt_subVC_viewWillAppear(self, animated: animated)
         }
     }
 
-    @objc func dvt_viewWillLayoutSubviews() {
+    @objc func dvt_navigation_viewWillLayoutSubviews() {
         if self.dvt.replaceNavigationBar != nil {
             self.dvt.layoutTransitionNavigationBar()
         }
-        self.dvt_viewWillLayoutSubviews()
+        self.dvt_navigation_viewWillLayoutSubviews()
     }
 }
 

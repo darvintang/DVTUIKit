@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'DVTUIKit'
-  s.version          = '2.0.0'
+  s.version          = '2.0.1'
   s.summary          = 'DVTUIKit'
 
   s.description      = <<-DESC
@@ -24,6 +24,12 @@ Pod::Spec.new do |s|
     ss.subspec 'Button' do |sss|
       sss.source_files = 'Sources/Advanced/Button/**.swift'
       sss.dependency "DVTUIKit/Extension"
+    end
+
+    ss.subspec 'Badge' do |sss|
+      sss.source_files = 'Sources/Advanced/Badge/**.swift'
+      sss.dependency "DVTUIKit/Extension"
+      sss.dependency "DVTUIKit/Advanced/Label"
     end
 
     ss.subspec 'Collection' do |sss|

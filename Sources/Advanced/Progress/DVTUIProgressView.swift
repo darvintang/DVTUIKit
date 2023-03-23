@@ -297,6 +297,8 @@ open class DVTUISlider: DVTUIProgressView {
         case begin, changed, ended
     }
 
+    public var offset: UIEdgeInsets = .zero
+
     public var sliderCompletion: ((_ state: SliderStatus, _ progress: CGFloat) -> Void)?
 
     /// 自定义进度提示控件
@@ -330,8 +332,8 @@ open class DVTUISlider: DVTUIProgressView {
         }
 
         let frame = self.trackView.frame
-        let progressWidth = (frame.width - self.thumbSize.width) * self.progress
-        let progressMarkFrame = CGRect(x: 0, y: 0, width: progressWidth + self.thumbSize.width / 2, height: self.progressHeight)
+        let progressWidth = (frame.width - self.thumbSize.width - self.offset.dvt.horizontal) * self.progress
+        let progressMarkFrame = CGRect(x: 0, y: 0, width: progressWidth + self.thumbSize.width / 2 + self.offset.left, height: self.progressHeight)
         self.progressMarkView.frame = progressMarkFrame
         self.thumbImageView.bounds = CGRect(origin: .zero, size: self.thumbSize)
         self.thumbImageView.center = CGPoint(x: progressMarkFrame.maxX, y: self.trackView.center.y)
@@ -415,7 +417,7 @@ open class DVTUISlider: DVTUIProgressView {
     }
 
     private func setThumbCenter(_ point: CGPoint) {
-        let newX = min(max(point.x, self.thumbSize.width / 2), self.dvt.width - self.thumbSize.width / 2)
+        let newX = min(max(point.x, self.thumbSize.width / 2 + self.offset.left), self.dvt.width - self.thumbSize.width / 2 - self.offset.right)
 
         var frame = self.progressMarkView.frame
         frame.size.width = newX
@@ -425,7 +427,7 @@ open class DVTUISlider: DVTUIProgressView {
             self.progressMarkView.frame = frame
         } completion: { _ in
             self.queue.sync {
-                self._progress = (frame.size.width - self.thumbSize.width / 2) / (self.trackView.frame.width - self.thumbSize.width)
+                self._progress = (frame.size.width - self.thumbSize.width / 2 - self.offset.left) / (self.trackView.frame.width - self.thumbSize.width - self.offset.dvt.horizontal)
             }
         }
     }

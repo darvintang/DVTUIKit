@@ -91,18 +91,17 @@ open class DVTTransitionNavigationBar: UINavigationBar {
     private static var DVTTransitionNavigationBar_swizzleedMethod_flag = false
 
     private static func swizzleedMethod() {
-        if self.DVTTransitionNavigationBar_swizzleedMethod_flag { return }
-        defer { self.DVTTransitionNavigationBar_swizzleedMethod_flag = true }
-
-        if #available(iOS 15.0, *) {
-            let didOSel = NSSelectorFromString("_didMove" + "FromWindow:" + "toWindow:")
-            let didSSel = NSSelectorFromString("dvt_didMove(_:to:)")
-            self.dvt_swizzleInstanceSelector(didOSel, swizzle: didSSel)
-        }
-        if #available(iOS 14.0, *) {
-            let didOSel = NSSelectorFromString("_" + "accessibility" + "_" + "navigationController")
-            let didSSel = NSSelectorFromString("dvt_" + "accessibility" + "_navigationController")
-            self.dvt_swizzleInstanceSelector(didOSel, swizzle: didSSel)
+        DispatchQueue.dvt.once {
+            if #available(iOS 15.0, *) {
+                let didOSel = NSSelectorFromString("_didMove" + "FromWindow:" + "toWindow:")
+                let didSSel = NSSelectorFromString("dvt_didMove(_:to:)")
+                self.dvt_swizzleInstanceSelector(didOSel, swizzle: didSSel)
+            }
+            if #available(iOS 14.0, *) {
+                let didOSel = NSSelectorFromString("_" + "accessibility" + "_" + "navigationController")
+                let didSSel = NSSelectorFromString("dvt_" + "accessibility" + "_navigationController")
+                self.dvt_swizzleInstanceSelector(didOSel, swizzle: didSSel)
+            }
         }
     }
 }

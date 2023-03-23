@@ -51,14 +51,16 @@ private extension UIView {
     }
 
     static func hook() {
-        if Self.UIView_Extension_dvt_hook_flag { return }
-        defer { Self.UIView_Extension_dvt_hook_flag = true }
-        let selectors = [[#selector(addSubview(_:)), #selector(dvt_filter_addSubview(_:))],
-                         [#selector(layoutSubviews), #selector(dvt_filter_layoutSubviews)]]
+        DispatchQueue.dvt.once {
+            if Self.UIView_Extension_dvt_hook_flag { return }
+            defer { Self.UIView_Extension_dvt_hook_flag = true }
+            let selectors = [[#selector(addSubview(_:)), #selector(dvt_filter_addSubview(_:))],
+                             [#selector(layoutSubviews), #selector(dvt_filter_layoutSubviews)]]
 
-        selectors.forEach { list in
-            if list.count == 2, let o = list.first, let s = list.last {
-                UIView.dvt_swizzleInstanceSelector(o, swizzle: s)
+            selectors.forEach { list in
+                if list.count == 2, let o = list.first, let s = list.last {
+                    UIView.dvt_swizzleInstanceSelector(o, swizzle: s)
+                }
             }
         }
     }

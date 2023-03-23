@@ -62,9 +62,9 @@ public extension DVTUINavigationBarStyleDelegate {
 
 extension BaseWrapper where BaseType == UIViewController {
     static func navigation_swizzleed() {
-        if BaseType.UIViewController_navigation_swizzleed_flag { return }
-        defer { BaseType.UIViewController_navigation_swizzleed_flag = true }
-        BaseType.dvt_swizzleInstanceSelector(#selector(BaseType.viewWillAppear(_:)), swizzle: #selector(BaseType.dvt_navigation_viewWillAppear(_:)))
+        DispatchQueue.dvt.once {
+            BaseType.dvt_swizzleInstanceSelector(#selector(BaseType.viewWillAppear(_:)), swizzle: #selector(BaseType.dvt_navigation_viewWillAppear(_:)))
+        }
     }
 }
 
@@ -73,8 +73,6 @@ protocol DVTUINavigationBridgeDelegate: UINavigationController {
 }
 
 private extension UIViewController {
-    static var UIViewController_navigation_swizzleed_flag = false
-
     @objc func dvt_navigation_viewWillAppear(_ animated: Bool) {
         self.dvt.renderNavigationBarStyle(animated)
         self.dvt_navigation_viewWillAppear(animated)

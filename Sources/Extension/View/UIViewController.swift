@@ -75,7 +75,6 @@ public extension UIViewController {
 }
 
 private extension UIViewController {
-    static var UIViewController_Extension_dvt_extension_Swizzleed_flag = false
     static var UIViewController_Extension_dvt_Extension_visibleState_key: UInt8 = 0
 
     var dvt_extension_visibleState: UIViewController.VisibleState {
@@ -132,38 +131,21 @@ public extension BaseWrapper where BaseType: UIViewController {
     }
 
     internal static func extension_swizzleed() {
-        if BaseType.UIViewController_Extension_dvt_extension_Swizzleed_flag { return }
-        defer { BaseType.UIViewController_Extension_dvt_extension_Swizzleed_flag = true }
-
-        BaseType.dvt_swizzleInstanceSelector(#selector(BaseType.viewDidLoad), swizzle: #selector(BaseType.dvt_extension_viewDidLoad))
-        BaseType.dvt_swizzleInstanceSelector(#selector(BaseType.viewWillAppear(_:)), swizzle: #selector(BaseType.dvt_extension_viewWillAppear(_:)))
-        BaseType.dvt_swizzleInstanceSelector(#selector(BaseType.viewDidAppear(_:)), swizzle: #selector(BaseType.dvt_extension_viewDidAppear(_:)))
-        BaseType.dvt_swizzleInstanceSelector(#selector(BaseType.viewWillDisappear(_:)), swizzle: #selector(BaseType.dvt_extension_viewWillDisappear(_:)))
-        BaseType.dvt_swizzleInstanceSelector(#selector(BaseType.viewDidDisappear(_:)), swizzle: #selector(BaseType.dvt_extension_viewDidDisappear(_:)))
+        DispatchQueue.dvt.once {
+            BaseType.dvt_swizzleInstanceSelector(#selector(BaseType.viewDidLoad), swizzle: #selector(BaseType.dvt_extension_viewDidLoad))
+            BaseType.dvt_swizzleInstanceSelector(#selector(BaseType.viewWillAppear(_:)), swizzle: #selector(BaseType.dvt_extension_viewWillAppear(_:)))
+            BaseType.dvt_swizzleInstanceSelector(#selector(BaseType.viewDidAppear(_:)), swizzle: #selector(BaseType.dvt_extension_viewDidAppear(_:)))
+            BaseType.dvt_swizzleInstanceSelector(#selector(BaseType.viewWillDisappear(_:)), swizzle: #selector(BaseType.dvt_extension_viewWillDisappear(_:)))
+            BaseType.dvt_swizzleInstanceSelector(#selector(BaseType.viewDidDisappear(_:)), swizzle: #selector(BaseType.dvt_extension_viewDidDisappear(_:)))
+        }
     }
 }
 
 public extension BaseWrapper where BaseType: UIViewController {
-    /// 当前显示的和window有直接联系的控制器
+    // MARK: Internal
+    /// 当前显示活跃的控制器
     var activeViewController: UIViewController? {
-        let vc = self.base
-
-        if let presentController = vc.presentedViewController {
-            return presentController.dvt.activeViewController
-        }
-
-        if let tabbarController = vc as? UITabBarController {
-            return tabbarController.selectedViewController?.dvt.activeViewController
-        }
-
-        if let navigationController = vc as? UINavigationController {
-            return navigationController.visibleViewController
-        }
-
-        if vc != vc.view.window?.rootViewController {
-            return vc.view.window?.rootViewController?.dvt.activeViewController
-        }
-        return vc
+        return UIApplication.dvt.activeWindow?.rootViewController?.dvt._activeViewController
     }
 
     /// 当控制器作为其它的控制器的子控制器时获取持有它的控制器
@@ -198,5 +180,27 @@ public extension BaseWrapper where BaseType: UIViewController {
             completion?(vc)
         }
         return [vc]
+    }
+
+    // MARK: Private
+    private var _activeViewController: UIViewController? {
+        let vc = self.base
+        if let presentController = vc.presentedViewController {
+            return presentController.dvt._activeViewController
+        }
+
+        if let tabbarController = vc as? UITabBarController {
+            return tabbarController.selectedViewController?.dvt._activeViewController
+        }
+
+        if let navigationController = vc as? UINavigationController {
+            return navigationController.visibleViewController?.dvt._activeViewController
+        }
+
+        if vc.dvt.visibleState.isVisible {
+            return vc
+        } else {
+            return nil
+        }
     }
 }

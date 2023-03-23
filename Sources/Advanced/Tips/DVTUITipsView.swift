@@ -667,13 +667,11 @@ public extension DVTUITipsView {
 /// 为了防止在添加TipsView之后被新的视图覆盖，所以hook了UIView的添加和移动子视图的方法
 /// 确保TipsView总是保持在最上层，如果有多个，按照添加的时间顺序处理
 private extension UIView {
-    static var UIView_DVTUITips_swizzleed_flag = false
-
     static func tip_swizzleed() {
-        if self.UIView_DVTUITips_swizzleed_flag { return }
-        defer { self.UIView_DVTUITips_swizzleed_flag = true }
-        self.dvt_swizzleInstanceSelector(#selector(addSubview(_:)), swizzle: #selector(dvt_tips_addSubview(_:)))
-        self.dvt_swizzleInstanceSelector(#selector(bringSubviewToFront(_:)), swizzle: #selector(dvt_tips_bringSubviewToFront(_:)))
+        DispatchQueue.dvt.once {
+            self.dvt_swizzleInstanceSelector(#selector(addSubview(_:)), swizzle: #selector(dvt_tips_addSubview(_:)))
+            self.dvt_swizzleInstanceSelector(#selector(bringSubviewToFront(_:)), swizzle: #selector(dvt_tips_bringSubviewToFront(_:)))
+        }
     }
 
     @objc func dvt_tips_addSubview(_ view: UIView) {

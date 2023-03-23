@@ -41,22 +41,21 @@ import DVTFoundation
 private extension BaseWrapper where BaseType: UIView {
     /// 拦截点击导航栏返回按钮pop事件
     static func exchangeNavigationBarContentView() {
-        guard let cls = NSClassFromString("_" + "UINavigationBar" + "ContentView"), !BaseType.ExchangeNavigationBarContentViewFlag else {
-            return
+        DispatchQueue.dvt.once {
+            guard let cls = NSClassFromString("_" + "UINavigationBar" + "ContentView") else {
+                return
+            }
+            let oSel = NSSelectorFromString("__" + "backButtonAction:")
+            let sSel = NSSelectorFromString("dvt__backButton:")
+            if let originMethod = class_getInstanceMethod(cls, oSel),
+               let swizzleMethod = class_getInstanceMethod(BaseType.self, sSel) {
+                method_exchangeImplementations(originMethod, swizzleMethod)
+            }
         }
-        let oSel = NSSelectorFromString("__" + "backButtonAction:")
-        let sSel = NSSelectorFromString("dvt__backButton:")
-        if let originMethod = class_getInstanceMethod(cls, oSel),
-           let swizzleMethod = class_getInstanceMethod(BaseType.self, sSel) {
-            method_exchangeImplementations(originMethod, swizzleMethod)
-        }
-        BaseType.ExchangeNavigationBarContentViewFlag = true
     }
 }
 
 private extension UIView {
-    static var ExchangeNavigationBarContentViewFlag = false
-
     /// 点击导航栏返回按钮的操作
     @objc
     func dvt__backButton(_ action: UIButton?) {
@@ -454,7 +453,7 @@ open class DVTUINavigationController: UINavigationController, UIGestureRecognize
     private var actionState: DVTNavigationActionState = .unknow {
         didSet {
             switch self.actionState {
-                case .didPush, .willPop, .willSet:  self.updateReplaceNavigationBar(true)
+                case .didPush, .willPop, .willSet: self.updateReplaceNavigationBar(true)
                 case .popCompleted, .pushCompleted, .setCompleted:
                     self.updateReplaceNavigationBar(false)
                 default: break

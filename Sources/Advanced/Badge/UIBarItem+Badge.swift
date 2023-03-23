@@ -41,13 +41,12 @@ import DVTFoundation
 extension UIBarItem: NameSpace {
     // MARK: Fileprivate
     fileprivate static func badge_swizzleed() {
-        if self.UIBarItem_DVTUIKit_Badge_swizzleed_flag { return }
-        self.dvt_swizzleInstanceSelector(NSSelectorFromString("setView:"), swizzle: #selector(dvt_setView(_:)))
-        self.UIBarItem_DVTUIKit_Badge_swizzleed_flag = true
+        DispatchQueue.dvt.once {
+            self.dvt_swizzleInstanceSelector(NSSelectorFromString("setView:"), swizzle: #selector(dvt_setView(_:)))
+        }
     }
 
     // MARK: Private
-    private static var UIBarItem_DVTUIKit_Badge_swizzleed_flag = false
     private static var UIBarItem_DVTUIKit_Badge_tempView_key: UInt8 = 0
 
     /// 用于在Item没有完成初始化之前保存角标信息

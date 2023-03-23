@@ -100,13 +100,12 @@ private extension UIView {
     }
 
     static func badge_swizzleed() {
-        if self.UIView_DVTUIKit_Badge_swizzleed_flag { return }
-        defer { self.UIView_DVTUIKit_Badge_swizzleed_flag = true }
-        self.dvt_swizzleInstanceSelector(#selector(self.layoutSubviews), swizzle: #selector(self.dvt_badge_layoutSubviews))
+        DispatchQueue.dvt.once {
+            self.dvt_swizzleInstanceSelector(#selector(self.layoutSubviews), swizzle: #selector(self.dvt_badge_layoutSubviews))
+        }
     }
 
     // MARK: Private
-    private static var UIView_DVTUIKit_Badge_swizzleed_flag = false
     private static var UIView_Badge_dvt_badgeInfo_key: UInt8 = 0
     private static var UIView_Badge_dvt_badgeLabel_key: UInt8 = 0
 

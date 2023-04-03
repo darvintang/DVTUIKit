@@ -57,6 +57,7 @@ open class DVTUITextView: UITextView {
         self.contentInsetAdjustmentBehavior = .never
         NotificationCenter.default.addObserver(self, selector: #selector(self.updatePlaceholderLabelHidden), name: UITextView.textDidChangeNotification,
                                                object: nil)
+        self.updatePlaceholderStyle()
     }
 
     // MARK: Open
@@ -166,6 +167,13 @@ open class DVTUITextView: UITextView {
     public var placeholderColor = UIColor(dvt: 0x43434450) {
         didSet {
             self.updatePlaceholderStyle()
+        }
+    }
+
+    @IBInspectable
+    public var placeholderFont: UIFont = .dvt.regular(of: 12) {
+        didSet {
+            self.placeholderLabel.font = self.placeholderFont
         }
     }
 

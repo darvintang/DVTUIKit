@@ -49,3 +49,10 @@ public extension BaseWrapper where BaseType == CGSize {
         CGSize(width: self.base.width * scale, height: self.base.height * scale)
     }
 }
+
+extension CGPoint: NameSpace { }
+public extension BaseWrapper where BaseType == CGPoint {
+    func convert(_ scale: CGFloat) -> CGPoint {
+        CGPoint(x: self.base.x * scale, y: self.base.y * scale)
+    }
+}

@@ -241,9 +241,12 @@ open class DVTUIProgressView: DVTUIView {
         }
 
         let frame = self.selfFrame
+        if frame.height < self.progressHeight {
+            self.bounds = self.bounds.dvt.setHeight(self.progressHeight)
+        }
 
         let trackX: CGFloat = 0
-        let trackY = min(0, (frame.height - self.progressHeight) / 2)
+        let trackY = (self.bounds.height - self.progressHeight) / 2
 
         let trackFrame = CGRect(x: trackX, y: trackY, width: frame.width, height: self.progressHeight)
 
@@ -266,6 +269,14 @@ open class DVTUISlider: DVTUIProgressView {
         super.setupSubviews()
         self.addSubview(self.progressPromptView)
         self.addSubview(self.thumbImageView)
+        self.thumbAnimate = { status in
+            if status == .begin {
+                self.thumbImageView.transform = CGAffineTransform(scaleX: 0.85, y: 0.85)
+            }
+            if status == .ended {
+                self.thumbImageView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
+            }
+        }
     }
 
     // MARK: Open
@@ -304,6 +315,8 @@ open class DVTUISlider: DVTUIProgressView {
     /// 自定义进度提示控件
     public var configurationPrompt: ((_ view: UIButton, _ progress: CGFloat) -> Void)?
 
+    public var thumbAnimate: ((_ state: SliderStatus) -> Void)?
+
     /// 是否显示使用进度提示控件，如果使用会忽略父控件的边界限制(clipsToBounds = false)
     public var isPrompt = true {
         didSet {
@@ -326,6 +339,9 @@ open class DVTUISlider: DVTUIProgressView {
     }
 
     override fileprivate func setSubviewsNewFrame() {
+        if self.frame.height < self.thumbSize.height {
+            self.bounds = self.bounds.dvt.setHeight(self.thumbSize.height)
+        }
         super.setSubviewsNewFrame()
         guard self.selfFrame != .zero else {
             return
@@ -397,7 +413,7 @@ open class DVTUISlider: DVTUIProgressView {
                 self.progressPromptView.isHidden = false
             }
             self.oldPoint = self.thumbImageView.center
-            self.thumbImageView.transform = CGAffineTransform(scaleX: 0.85, y: 0.85)
+            self.thumbAnimate?(.begin)
             self.sliderCompletion?(.begin, self._progress)
         }
         if pan.state == .changed {
@@ -405,13 +421,14 @@ open class DVTUISlider: DVTUIProgressView {
             let newX = self.oldPoint.x + offsetPoint.x
             self.setThumbCenter(CGPoint(x: newX, y: self.oldPoint.y))
             self.sliderCompletion?(.changed, self._progress)
+            self.thumbAnimate?(.changed)
         }
 
         if pan.state == .ended {
             if self.isPrompt {
                 self.progressPromptView.isHidden = true
             }
-            self.thumbImageView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
+            self.thumbAnimate?(.ended)
             self.sliderCompletion?(.ended, self._progress)
         }
     }

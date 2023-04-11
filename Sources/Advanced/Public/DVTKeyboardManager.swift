@@ -74,6 +74,18 @@ public struct KeyboardInfo {
     public var width: CGFloat {
         self.bounds.width
     }
+
+    public func height(in view: UIView?) -> CGFloat {
+        guard let view = view else {
+            return self.height
+        }
+        let keyboardRect = DVTKeyboardManager.convert(keyboard: self.endFrame, to: view)
+        let visibleRect = CGRectIntersection(view.bounds.dvt.flat, keyboardRect.dvt.flat)
+        if !visibleRect.dvt.isValidated {
+            return 0
+        }
+        return visibleRect.size.height
+    }
 }
 
 public class DVTKeyboardManager {
@@ -99,6 +111,35 @@ public class DVTKeyboardManager {
 
     public private(set) var info: KeyboardInfo?
     public private(set) var isVisible = false
+
+    public static func convert(keyboard rect: CGRect, to view: UIView?) -> CGRect {
+        if rect.dvt.isEmpty { return rect }
+        guard let mainWindow = UIApplication.dvt.activeWindow else {
+            if let view = view {
+                return view.convert(rect, from: nil)
+            }
+            return rect
+        }
+
+        var resRect = mainWindow.convert(rect, from: nil)
+        guard let view = view else {
+            return mainWindow.convert(resRect, to: nil)
+        }
+
+        if view == mainWindow {
+            return resRect
+        }
+
+        guard let toWindow = view as? UIWindow ?? view.window, toWindow != mainWindow else {
+            return mainWindow.convert(resRect, to: view)
+        }
+
+        resRect = mainWindow.convert(resRect, to: mainWindow)
+        resRect = toWindow.convert(resRect, from: mainWindow)
+        resRect = view.convert(resRect, from: toWindow)
+
+        return resRect
+    }
 
     // MARK: Fileprivate
     fileprivate class KeyboardMonitor {

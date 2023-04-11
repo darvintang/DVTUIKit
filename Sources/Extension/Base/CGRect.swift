@@ -60,6 +60,15 @@ public extension BaseWrapper where BaseType == CGRect {
         CGRect(x: self.x.dvt.flat, y: self.y.dvt.flat, width: self.base.width.dvt.flat, height: self.base.height.dvt.flat)
     }
 
+    var isValidated: Bool {
+        return !self.base.isInfinite && !self.base.dvt.isInfinite && !self.base.isNull
+    }
+
+    var isInfinite: Bool {
+        let rect = self.base
+        return rect.width.isInfinite || rect.height.isInfinite || rect.origin.y.isInfinite || rect.origin.x.isInfinite
+    }
+
     var isEmpty: Bool {
         self.base.size.dvt.isEmpty
     }

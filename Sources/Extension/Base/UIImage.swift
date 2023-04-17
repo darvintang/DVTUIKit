@@ -216,7 +216,16 @@ public extension BaseWrapper where BaseType: UIImage {
         guard let imagePartRef = self.base.cgImage?.cropping(to: rect.dvt.to(rate: self.base.scale)) else {
             return nil
         }
-        return UIImage(cgImage: imagePartRef)
+        return UIImage(cgImage: imagePartRef, scale: self.base.scale, orientation: self.base.imageOrientation)
+    }
+
+    /// 图片截取，会先缩放图片到大于等于裁剪的大小
+    /// - Parameter rect: 截取的范围
+    /// - Returns: 截取的后的图片
+    func optimalCropping(to rect: CGRect) -> UIImage? {
+        let originSize = self.base.size
+        let scale = max(rect.maxY / originSize.height, rect.maxX / originSize.width)
+        return self.image(width: originSize.dvt.convert(scale).width)?.dvt.cropping(to: rect)
     }
 
     /// 获取二维码的图像区域，根据图片的倍率计算CGRect

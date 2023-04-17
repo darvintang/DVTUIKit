@@ -74,6 +74,8 @@ public extension UIViewController {
     }
 }
 
+private var UIViewController_allDidLoadViewControllers: [DVTWeakObjectContainer<UIViewController>] = []
+
 private extension UIViewController {
     static var UIViewController_Extension_dvt_Extension_visibleState_key: UInt8 = 0
 
@@ -89,9 +91,13 @@ private extension UIViewController {
     }
 
     @objc
-    func dvt_extension_viewDidLoad(_ animated: Bool) {
-        self.dvt_extension_viewDidLoad(animated)
+    func dvt_extension_viewDidLoad() {
+        self.dvt_extension_viewDidLoad()
         self.dvt_extension_visibleState = .didLoad
+        if !UIViewController_allDidLoadViewControllers.contains(where: { $0.object == self }) {
+            UIViewController_allDidLoadViewControllers.append(DVTWeakObjectContainer<UIViewController>(object: self))
+        }
+        UIViewController_allDidLoadViewControllers.removeAll(where: { $0.object == nil })
     }
 
     @objc
@@ -143,6 +149,20 @@ public extension BaseWrapper where BaseType: UIViewController {
 
 public extension BaseWrapper where BaseType: UIViewController {
     // MARK: Internal
+    /// 所有的已经加载了的控制器，请确保在主线程使用
+    static var allDidLoadViewControllers: [UIViewController] {
+        if !UIViewController_dvt_extension_Swizzleed_flag {
+            dvtuiloger.warning("请在应用初始化的时候调用DVTUIKitConfig.beginHook，否则获取的allDidLoadViewControllers为空")
+        }
+        BaseWrapper<BaseType>.extension_swizzleed()
+        return UIViewController_allDidLoadViewControllers.compactMap { $0.object }
+    }
+
+    /// 所有的已经加载了的控制器，请确保在主线程使用
+    var allDidLoadViewControllers: [UIViewController] {
+        Self.allDidLoadViewControllers
+    }
+
     /// 当前显示活跃的控制器
     var activeViewController: UIViewController? {
         return UIApplication.dvt.activeWindow?.rootViewController?.dvt._activeViewController

@@ -34,7 +34,6 @@
 import UIKit
 import DVTFoundation
 
-extension CGFloat: NameSpace { }
 public extension BaseWrapper where BaseType == CGFloat {
     /// 屏幕宽度
     static var screenWidth: CGFloat {

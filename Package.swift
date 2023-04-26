@@ -40,7 +40,7 @@ fileprivate enum RemotePackage: CaseIterable {
     var info: PackageInfo {
         switch self {
             case .foundation:
-                return PackageInfo(name: "DVTFoundation", version: "2.0.0")
+                return PackageInfo(name: "DVTFoundation", version: "2.0.1")
             case .loger:
                 return PackageInfo(name: "DVTLoger", version: "2.0.0")
         }

@@ -135,10 +135,12 @@ private class DVTUINavigationControllerGestureDelegateContainer: NSObject, UIGes
 }
 
 public protocol DVTUINavigationControllerPopAndBackButtonHandlerDelegate {
+    func dvt_popCompleted()
     func dvt_shouldPopViewController(by popGesture: Bool) -> Bool
 }
 
 public extension DVTUINavigationControllerPopAndBackButtonHandlerDelegate {
+    func dvt_popCompleted() { }
     func dvt_shouldPopViewController(by popGesture: Bool) -> Bool { true }
 }
 
@@ -323,6 +325,9 @@ open class DVTUINavigationController: UINavigationController, UIGestureRecognize
         } else {
             // 转场动画执行完成之后，设置状态
             self.dvt.animateAlongsideTransition { [weak self] _ in
+                if viewController != self?.topViewController {
+                    (viewController as? DVTUINavigationControllerPopAndBackButtonHandlerDelegate)?.dvt_popCompleted()
+                }
                 self?.actionState = .popCompleted
                 self?.actionState = .unknow
             }
@@ -346,6 +351,13 @@ open class DVTUINavigationController: UINavigationController, UIGestureRecognize
         } else {
             // 转场动画执行完成之后，设置状态
             self.dvt.animateAlongsideTransition { [weak self] _ in
+                if let newVCs = self?.viewControllers {
+                    viewControllers?.forEach { vc in
+                        if !newVCs.contains(vc) {
+                            (vc as? DVTUINavigationControllerPopAndBackButtonHandlerDelegate)?.dvt_popCompleted()
+                        }
+                    }
+                }
                 self?.actionState = .popCompleted
                 self?.actionState = .unknow
             }
@@ -369,6 +381,13 @@ open class DVTUINavigationController: UINavigationController, UIGestureRecognize
         } else {
             // 转场动画执行完成之后，设置状态
             self.dvt.animateAlongsideTransition { [weak self] _ in
+                if let newVCs = self?.viewControllers {
+                    viewControllers?.forEach { vc in
+                        if !newVCs.contains(vc) {
+                            (vc as? DVTUINavigationControllerPopAndBackButtonHandlerDelegate)?.dvt_popCompleted()
+                        }
+                    }
+                }
                 self?.actionState = .popCompleted
                 self?.actionState = .unknow
             }

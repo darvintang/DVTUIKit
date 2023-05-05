@@ -43,30 +43,30 @@ public extension BaseWrapper where BaseType: UINavigationController {
         }
     }
 
-    @discardableResult func popViewController(animated: Bool = true, completion: (() -> Void)? = nil) -> UIViewController? {
+    @discardableResult func popViewController(animated: Bool = true, completion: ((_ viewController: UIViewController?) -> Void)? = nil) -> UIViewController? {
         let navigationController = self.base
         let result = navigationController.popViewController(animated: animated)
         navigationController.dvt.animateAlongsideTransition { _ in
-            completion?()
+            completion?(result)
         }
         return result
     }
 
     @discardableResult func popToViewController(_ viewController: UIViewController, animated: Bool = true,
-                                                completion: (() -> Void)? = nil) -> [UIViewController]? {
+                                                completion: ((_ viewControllers: [UIViewController]?) -> Void)? = nil) -> [UIViewController]? {
         let navigationController = self.base
         let result = navigationController.popToViewController(viewController, animated: animated)
         navigationController.dvt.animateAlongsideTransition { _ in
-            completion?()
+            completion?(result)
         }
         return result
     }
 
-    @discardableResult func popToRootViewController(animated: Bool = true, completion: (() -> Void)? = nil) -> [UIViewController]? {
+    @discardableResult func popToRootViewController(animated: Bool = true, completion: ((_ viewControllers: [UIViewController]?) -> Void)? = nil) -> [UIViewController]? {
         let navigationController = self.base
         let result = navigationController.popToRootViewController(animated: animated)
         navigationController.dvt.animateAlongsideTransition { _ in
-            completion?()
+            completion?(result)
         }
         return result
     }

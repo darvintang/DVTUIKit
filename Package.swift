@@ -150,7 +150,7 @@ fileprivate enum LocalPackage: String, ProductInfoProtocol {
     }
 
     var platforms: [SupportedPlatform] {
-        [.iOS(.v13)]
+        [.iOS(.v13), .macCatalyst(.v13)]
     }
 
     var info: ProductInfo {

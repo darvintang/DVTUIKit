@@ -130,7 +130,7 @@ private var UIViewController_dvt_extension_Swizzleed_flag = false
 public extension BaseWrapper where BaseType: UIViewController {
     var visibleState: UIViewController.VisibleState {
         if !UIViewController_dvt_extension_Swizzleed_flag {
-            dvtuiloger.warning("请在应用初始化的时候调用DVTUIKitConfig.beginHook，否则获取的visibleState会不准确")
+            dvtuiloger.error("请在应用初始化的时候调用DVTUIKitConfig.beginHook，否则获取的visibleState会不准确")
         }
         BaseWrapper<BaseType>.extension_swizzleed()
         return self.base.dvt_extension_visibleState
@@ -152,7 +152,7 @@ public extension BaseWrapper where BaseType: UIViewController {
     /// 所有的已经加载了的控制器，请确保在主线程使用
     static var allDidLoadViewControllers: [UIViewController] {
         if !UIViewController_dvt_extension_Swizzleed_flag {
-            dvtuiloger.warning("请在应用初始化的时候调用DVTUIKitConfig.beginHook，否则获取的allDidLoadViewControllers为空")
+            dvtuiloger.error("请在应用初始化的时候调用DVTUIKitConfig.beginHook，否则获取的allDidLoadViewControllers为空")
         }
         BaseWrapper<BaseType>.extension_swizzleed()
         return UIViewController_allDidLoadViewControllers.compactMap { $0.object }

@@ -44,7 +44,7 @@ public let dvtuiloger = {
 }()
 
 public struct DVTUIKitConfig {
-    public static var logerLevel: Loger.Level = .all {
+    public static var logerLevel: Loger.Level = .default {
         didSet {
             dvtuiloger.logLevel = logerLevel
         }

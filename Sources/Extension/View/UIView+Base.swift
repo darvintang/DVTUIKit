@@ -35,7 +35,7 @@ import UIKit
 import ObjectiveC
 import DVTFoundation
 
-extension UIView: NameSpace { }
+extension UIView: @retroactive NameSpace { }
 
 private extension UIView {
     static var UIView_Extension_dvt_viewController_key: UInt8 = 0

@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'DVTUIKit'
-  s.version          = '3.0.0'
+  s.version          = '4.0.0'
   s.summary          = 'DVTUIKit'
 
   s.description      = <<-DESC
@@ -92,12 +92,12 @@ Pod::Spec.new do |s|
 
   s.subspec 'Extension' do |ss|
     ss.source_files = 'Sources/Extension/**/*.swift', 'Sources/Extension/*.swift'
-    ss.dependency 'DVTFoundation', '~> 2.0.1'
-    ss.dependency 'DVTLoger', '~> 2.0.0'
+    ss.dependency 'DVTFoundation', '~> 3.0.0'
+    ss.dependency 'DVTLoger', '~> 3.0.0'
   end
 
   s.source_files = 'Sources/**.swift'
 
-  s.swift_version = '5'
+  s.swift_version = '6'
   s.requires_arc  = true
 end

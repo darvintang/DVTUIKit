@@ -35,7 +35,7 @@ import UIKit
 import DVTFoundation
 
 /// 判断设备类型
-extension Bool: NameSpace { }
+ extension Bool: @retroactive NameSpace { }
 public extension BaseWrapper where BaseType == Bool {
     /// 判断当前线程是否是主线程
     static var isMainThread: Bool {
